@@ -24,13 +24,29 @@ try {
 
     const lines = data.split(/\r?\n/);
 
-    lines.forEach((fileLine) => {
-        console.log(fileLine);
+    let program = [];
 
-        
+    lines.forEach((Line) => {
+        //console.log(Line);
+
+        let programLine = Line.split(" ");
+
+        let memoryValue = programLine[0];
+
+        programLine.splice(0,2);
+
+        let dividedLine = [memoryValue, programLine];
+
+        program.push(dividedLine);
 
     });
 
+    console.log(program);
+    // [
+    //     [ ":1149", ["ap", "ap", "c", "i", "ap"]],
+    //     [ ":1150", ["ap", "ap", "c", "i", "ap"]],
+
+    // ]
 
 } catch (err) {
 
