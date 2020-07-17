@@ -6,6 +6,7 @@ let dec = (n) => n - 1;
 // let add = (add, n)
 
 //let ap = (f) => (x) => f(x);
+let ap = (f,x) => f(x);
 
 
 // function ap(f) {
@@ -19,21 +20,23 @@ function is(desc, a, b) {
     if (a === b) {
         console.log("OK # ", desc)
     } else {
-        console.log("FAIL # ", desc)
+        console.log("FAIL # ", desc, " got ", a, " expected ", b)
     }
 }
 
 // ap inc ap inc 0   =   2
-is( "#17 function application example 1", ap(inc,ap(inc,0)), 2 );
+is( "#17 and #5 function application example 1", ap(inc,ap(inc,0)), 2 );
 
 // ap inc ap inc ap inc 0   =   3
 
-is( "#17 ex 2",
+is( "#17 and #5 ex 2",
     ap (inc, ap (inc,ap (inc,0))),
     3);
 
 
 // Brock's Guess from vague 2003 lambda calculus memories
+
+is( "#6 Predenssor example", ap(dec,2), 1);
 
 let t = (x) => (y) => x;
 let f = (x) => (y) => y;
@@ -44,7 +47,7 @@ is( "#21 K combinator example", ap(ap(t,1), 5), 1);
 //ap ap t ap inc 5 t   =   6
 is( "#21 K combinator last example", ap(ap(t, ap(inc, 5)), t), 6);
 
-is( "#21 K combinator last example 2", ap(ap(t(ap(inc (5)),t))), 6);
+//is( "#21 K combinator last example 2", ap(ap(t(ap(inc (5)),t))), 6);
 
 //ap(ap(t(ap(inc (5)),t)
 
