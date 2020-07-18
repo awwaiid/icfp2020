@@ -134,6 +134,11 @@ function evalAst(ast) {
         if(nodeType == "ap") {
             let f = evalAst(ast.shift());
             let param = ast.shift();
+
+            if(!(f instanceof Function)) {
+                console.log("evalAst error f is not a function", { f, param });
+                throw new Error("Function expected");
+            }
             // console.log("evalAst apply", { f, param })
             return f(param);
         }
@@ -156,46 +161,6 @@ function evil(tokenStream) {
     // console.log("evil", {ast});
     return evalAst(ast);
 }
-
-function interpret(tokenStream) {
-    // console.log("interp:", {tokenStream});
-    if(!Array.isArray(tokenStream)) {
-        return [tokenStream];
-    }
-
-    // Maybe this should be (ast, tokenStream) = getNext(tokenStream)
-    let cmd = tokenStream[0];
-    //console.log("interpret", {cmd});
-
-    if(cmd === "ap") {
-        let ap_params = tokenStream.slice(1);
-        let evaluated_partial_function = interpret(ap_params);
-        let f = evaluated_partial_function[0];
-        let evaluated_params = interpret(evaluated_partial_function.slice(1));
-        let param = evaluated_params[0];
-        let remaining_data = evaluated_params.slice(1);
-        let result = f(param);
-        return interpret([result, ...remaining_data]);
-    }
-    if(primitives[cmd]) {
-        return [primitives[cmd], ...tokenStream.slice(1)];
-        // [3, 5, 2].slice(1) -> [5, 2]
-        // [3, 4, ...[5, 7, 6]] -> [3, 4, 5, 7, 6]
-    }
-    if(world[cmd]) {
-        return interpret(world[cmd]);
-    }
-    if(cmd == "(") {
-        return extractLiteralList(tokenStream.slice(1));
-    }
-    //console.log("Not ap ... just returning")
-    return tokenStream;
-}
-
-function interp(p) {
-    return interpret(p)[0];
-}
-
 
 function is(desc, a, b) {
     let aVal = evil(a);
@@ -306,7 +271,7 @@ try {
         let programLine = Line.split(" ");
         let memoryValue = programLine[0];
         programLine.splice(0,2);
-        functions[memoryValue] = programLine;
+        functions[memoryValue] = getNext(programLine);
     });
 
     // console.log(functions);
@@ -323,13 +288,9 @@ try {
 
 
 
-// let galaxy = loadGalaxy();
-// world = galaxy;
-// interpret(["ap", "interact", "galaxy"])
+let galaxy = loadGalaxy();
+world = galaxy;
+evil(["ap", "interact", "galaxy"])
 
 
-runTests();
-
-// export default {
-//     interpret
-// };
+// runTests();
