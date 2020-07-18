@@ -78,13 +78,6 @@ let primitives = {
 let world = {};
 
 
-function is(desc, a, b) {
-    if (a === b) {
-        console.log("OUTSTANDING! # ", desc)
-    } else {
-        console.log("FAIL # ", desc, " got ", a, " expected ", b)
-    }
-}
 
 function extractLiteralList(proggie) {
     // pull out the list, return it, and the rest after
@@ -98,7 +91,7 @@ function extractLiteralList(proggie) {
 }
 
 function interpret(proggie) {
-    console.log("interp:", {proggie});
+    // console.log("interp:", {proggie});
     if(!Array.isArray(proggie)) {
 
         return [proggie];
@@ -130,7 +123,7 @@ function interpret(proggie) {
 }
 
 function interpret2(proggie) {
-    console.log("interp:", {proggie});
+    // console.log("interp:", {proggie});
     if(!Array.isArray(proggie)) {
 
         if(primitives[proggie]) {
@@ -174,59 +167,69 @@ function interp(p) {
     return interpret(p)[0];
 }
 
+
+function is(desc, a, b) {
+    let aVal = interp(a);
+    if (aVal === b) {
+        console.log("OUTSTANDING! # ", desc)
+    } else {
+        console.log("FAIL # ", desc, " got ", a, " expected ", b)
+    }
+}
+
 function runTests() {
 
-    is("multiplication", interp(["ap","ap","mul","5","3"]), 15);
-    is("triple inc", interp(["ap", "inc", "ap", "inc", "ap", "inc", 0]), 3); // should be 3
+    is("multiplication", ["ap","ap","mul","5","3"], 15);
+    is("triple inc", ["ap", "inc", "ap", "inc", "ap", "inc", 0], 3); // should be 3
     
     
-    is( "#22 False example", interp(["ap", "ap", "f", 1, 5]), 5);
+    is( "#22 False example", ["ap", "ap", "f", 1, 5], 5);
     
     //"ap" "ap" t 1 5   =  1
-    is( "#21 K combinator example", interp(["ap","ap","t",1, 5]), 1);
+    is( "#21 K combinator example", ["ap","ap","t",1, 5], 1);
 
     //"ap" "ap" t "ap" "inc" 5 t   =   6
-    is( "#21 K combinator last example", interp(["ap", "ap", "t", "ap", "inc", 5, "t"]), 6);
+    is( "#21 K combinator last example", ["ap", "ap", "t", "ap", "inc", 5, "t"], 6);
 
 
     // "ap" "inc" "ap" "inc" 0   =   2
-    is( "#17 and #5 function application example 1", interp(["ap", "inc","ap", "inc",0]), 2 );
+    is( "#17 and #5 function application example 1", ["ap", "inc","ap", "inc",0], 2 );
 
     // "ap" "inc" "ap" "inc" "ap" "inc" 0   =   3
 
-    is( "#17 and #5 ex 2",
-        interp(["ap","inc","ap","inc","ap","inc",0]),
-        3);
+    is( "#17 and #5 ex 2", ["ap","inc","ap","inc","ap","inc",0], 3);
 
-    is("add 1, 2, 3 with curry", interp(["ap","ap","add",1,"ap","ap","add",2,3]), 6);
+    is("add 1, 2, 3 with curry", ["ap","ap","add",1,"ap","ap","add",2,3], 6);
 
-    is("#11 Example", interp(["ap","ap","eq",-10,-10]), primitives.t);
+    is("#11 Example", ["ap","ap","eq",-10,-10], primitives.t);
 
-    is("#12 Example", interp(["ap","ap","lt",-10,-12]), primitives.f);
+    is("#12 Example", ["ap","ap","lt",-10,-12], primitives.f);
 
-    is("#19 C Combinator ex 1", interp(["ap","ap","ap","c","add",1,2]), 3);    
+    is("#19 C Combinator ex 1", ["ap","ap","ap","c","add",1,2], 3);    
 
-    is("#19 C Combinator ex 2", interp(["ap","ap","ap","c","div",7,14]), 2);
+    is("#19 C Combinator ex 2", ["ap","ap","ap","c","div",7,14], 2);
 
-    is("#28 nil try 1", interp(["ap", "nil", "2"]), primitives.t);
-    is("#28 nil try 2", interp(["ap", "nil", "3"]), primitives.t);
+    is("#28 nil try 1", ["ap", "nil", "2"], primitives.t);
+    is("#28 nil try 2", ["ap", "nil", "3"], primitives.t);
 
-    is("#18 s ex 1", interp(["ap", "ap", "ap", "s", "add", "inc", "1"]),   3);
-    is("#18 s ex 2", interp(["ap", "ap", "ap", "s", "mul", "ap", "add", "1", "6"]), 42);
+    is("#18 s ex 1", ["ap", "ap", "ap", "s", "add", "inc", "1"],   3);
+    is("#18 s ex 2", ["ap", "ap", "ap", "s", "mul", "ap", "add", "1", "6"], 42);
 
     // is("#25", interp(["ap", "ap", "cons", "x0", "x1"]), interp(["ap", "ap", "cons", "x0", "x1"]))
 
-    is("23 ex 1", interp(["ap", "pwr2", 7]), 128);
+    is("23 ex 1", ["ap", "pwr2", 7], 128);
 
-    is("#26 car", interp(["ap", "car", "ap", "ap", "cons", "5", "7"]), "5");
-    is("#27 cdr", interp(["ap", "cdr", "ap", "ap", "cons", "5", "7"]), "7");
+    is("#26 car", ["ap", "car", "ap", "ap", "cons", "5", "7"], "5");
+    is("#27 cdr", ["ap", "cdr", "ap", "ap", "cons", "5", "7"], "7");
     // (a b c d) -> (a . (b . (c . (d . nil))))
 
-    is("#29 isnil nil", interp(["ap", "isnil", "nil"]), primitives.t);
-    is("#29 isnill nope", interp(["ap", "isnil", "ap", "ap", "cons", "x0", "x1"]), primitives.f);
+    is("#29 isnil nil", ["ap", "isnil", "nil"], primitives.t);
+    is("#29 isnill nope", ["ap", "isnil", "ap", "ap", "cons", "x0", "x1"], primitives.f);
        
     // ( )   =   nil
-    is("#30 list construction empty", interp(["(", ")"]), "nil");
+    is("#30 list construction empty", ["(", ")"], "nil");
+
+    // is("lazy evaluated", interp([]))
 
     // world = {
     //     ":2048": ["ap", "f", ":2048"]
