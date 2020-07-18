@@ -1,12 +1,20 @@
 
-// look for a library from npm which lets us generate a bitmap (png) by drawing pixels and outputing a file
-// canvas = draw.newCanvas
-// canvas.setPixel(23, 48) // coordinates
-// canvas.writeToFile("out.png")
-
 const draw = require('imagejs');
 
-drawPictureFile([ [0,0], [10,10], [15,7], [9,9] ], "output.png");
+//drawPictureFile([ [0,0], [10,10], [15,7], [9,9] ], "output.png");
+
+/// draw
+// ap draw ( )   =   |picture1|
+// ap draw ( ap ap vec 1 1 )   =   |picture2|
+// ap draw ( ap ap vec 1 2 )   =   |picture3|
+// ap draw ( ap ap vec 2 5 )   =   |picture4|
+// ap draw ( ap ap vec 1 2 , ap ap vec 3 1 )   =   |picture5|
+// ap draw ( ap ap vec 5 3 , ap ap vec 6 3 , ap ap vec 4 4 , ap ap vec 6 4 , ap ap vec 4 5 )   =   |picture6|
+
+// function draw(list) {
+//     // extarct coords from list
+//     drawPictureFile(coords, asdf)
+// }
 
 function drawPictureFile(coordinates, fileName) {
 

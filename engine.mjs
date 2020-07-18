@@ -1,4 +1,5 @@
 
+import { listToList } from "./list_utils.mjs";
 
 // 01 1110 000100101001
 // |  |    |
@@ -6,7 +7,7 @@
 // |  +------- the number of bits * 4, in unary
 // +---------- the sign (01 postive, 10 negative)   
 
-function modulate(n) {
+export function modulate(n) {
     let isPositive = n >= 0;
     let num = Math.abs(n);
     let binaryString = num.toString(2);
@@ -26,7 +27,7 @@ function modulate(n) {
     return signPrefix + unary + paddedBinaryString;
 }
 
-function demodulate(text) {
+export function demodulate(text) {
     // console.log({text})
     let binary = text.split('');
     // console.log({binary})
@@ -53,7 +54,7 @@ function demodulate(text) {
 }
 
 
-let primitives = {
+export let primitives = {
     inc: (n) => parseInt(evalAst(n)) + 1,
     dec: (n) => parseInt(evalAst(n)) - 1,
     t: (x) => (y) => evalAst(x),
@@ -64,15 +65,18 @@ let primitives = {
     s: (x0) => (x1) => (x2) => {
         let x0Val = evalAst(x0);
         let x1Val = evalAst(x1);
-        let x2Val = evalAst(x2);
+        // let x2Val = evalAst(x2);
+        let x2Val = x2;
         return x0Val(x2Val)(x1Val(x2Val));
     },
 
     // ap ap ap c x0 x1 x2   =   ap ap x0 x2 x1
     c: (x0) => (x1) => (x2) => {
         let x0Val = evalAst(x0);
-        let x1Val = evalAst(x1);
-        let x2Val = evalAst(x2);
+        // let x1Val = evalAst(x1);
+        // let x2Val = evalAst(x2);
+        let x1Val = x1;
+        let x2Val = x2;
         return x0Val(x2Val)(x1Val);
     },
 
@@ -82,7 +86,8 @@ let primitives = {
     b: x0 => x1 => x2 => {
         let evalX0 = evalAst(x0);
         let evalX1 = evalAst(x1);
-        let evalX2 = evalAst(x2);
+        //let evalX2 = evalAst(x2);
+        let evalX2 = x2;
         return evalX0(evalX1(evalX2));
     },
 
@@ -186,10 +191,15 @@ let primitives = {
     //     f38(protocol, (flag, newState, data)) = if flag == 0
     //                 then (modem(newState), multipledraw(data))
     //                 else interact(protocol, modem(newState), send(data))
+
+    // ap ap cons flag ap ap cons newState ap ap cons data nil
     f38: protocol => list => {
         let flag = primitives.car(list);
         let netState = primitives.car( primitives.cdr(list));
         let data = primitives.car(primitives.cdr(primitives.cdr(list)));
+
+        console.log("f38", {flag, netState, data});
+        
         if(primitives.iszero(flag) == primitives.t) {
             return primitives.cons(
                 primitives.modem(newState)
@@ -213,13 +223,26 @@ let primitives = {
     interact: protocol => state => vector => {
         console.log("interact", {protocol, state, vector})
         let evalProtocol = evalAst(protocol);
-        return (primitives.f38(evalProtocol))(evalProtocol(state)(vector));
+        console.log("interact protocol", { evalProtocol });
+        console.log("interact protocol content", evalProtocol.toString())
+        let f38Result = primitives.f38(evalProtocol);
+        console.log("f38Result", f38Result.toString());
+        let protoStateResult = evalProtocol(state);
+        console.log("protoStateResult", protoStateResult.toString())
+        let protoVectorResult = protoStateResult(vector);
+        console.log("protoVectorResult", protoVectorResult.toString())
+        let composedREsult = f38Result(protoVectorResult);
+        return composedREsult;
+        // return f38Result()
+        // return (primitives.f38(evalProtocol))(evalProtocol(state)(vector));
     }
 };
 
 let world = {};
 
-
+export function setWorld(newWorld) {
+    world = newWorld;
+}
 
 function extractLiteralList(proggie) {
     // pull out the list, return it, and the rest after
@@ -245,7 +268,7 @@ function extractLiteralList(proggie) {
 // a plain value could be :foo reference
 
 
-function getNext(tokenStream) {
+export function getNext(tokenStream) {
     // console.log("getNext", {tokenStream})
     let token = tokenStream.shift();
     if (token == "ap") {
@@ -258,8 +281,13 @@ function getNext(tokenStream) {
     return token;
 }
 
+let evalDepth = 0;
 function evalAst(ast) {
-    // console.log("evalAst", {ast})
+    evalDepth++;
+    // console.log("evalAst", ast.toString())
+    // console.trace("Here!")
+    // console.log("evalAst", {evalDepth, ast})
+    // console.log("evalAst", {evalDepth})
     if (Array.isArray(ast)) {
         // let nodeType = ast.shift();
         let nodeType = ast[0];
@@ -273,256 +301,32 @@ function evalAst(ast) {
                 throw new Error("Function expected");
             }
             // console.log("evalAst apply", { f, param })
-            return f(param);
+            let result = f(param);
+            evalDepth--;
+            return result;
         }
+        throw new Error("AP expected");
     } else {
         if (primitives[ast]) {
             // console.log("Found primitive", ast, primitives[ast])
+            evalDepth--;
             return primitives[ast];
         }
         if (world[ast]) {
-            // console.log("Found in world", world[ast]);
-            return evalAst(world[ast]);
-        }
+            // console.log("Found in world", ast, world[ast]);
 
+            let result = evalAst(world[ast]);
+            evalDepth--;
+            return result;
+        }
+        evalDepth--;
         return ast;
     }
 }
 
-function evil(tokenStream) {
+export function evil(tokenStream) {
     // console.log("evil", {tokenStream});
     let ast = getNext(tokenStream);
     // console.log("evil", {ast});
     return evalAst(ast);
 }
-
-function is(desc, a, b) {
-    let aVal = evil(a);
-    if (aVal === b) {
-        console.log("OUTSTANDING! # ", desc)
-    } else {
-        console.log("FAIL # ", desc, " got ", a, " expected ", b)
-    }
-}
-
-function ok(desc, a, b) {
-    if (a === b) {
-        console.log("GOOD JOB! # ", desc)
-    } else {
-        console.log("FAIL # ", desc, " got ", a, " expected ", b)
-    }
-}
-
-function runTests() {
-
-    is("multiplication", ["ap", "ap", "mul", "5", "3"], 15);
-    is("triple inc", ["ap", "inc", "ap", "inc", "ap", "inc", 0], 3); // should be 3
-
-
-    is("#22 False example", ["ap", "ap", "f", 1, 5], 5);
-
-    //"ap" "ap" t 1 5   =  1
-    is("#21 K combinator example", ["ap", "ap", "t", 1, 5], 1);
-
-    //"ap" "ap" t "ap" "inc" 5 t   =   6
-    is("#21 K combinator last example", ["ap", "ap", "t", "ap", "inc", 5, "t"], 6);
-
-
-    // "ap" "inc" "ap" "inc" 0   =   2
-    is("#17 and #5 function application example 1", ["ap", "inc", "ap", "inc", 0], 2);
-
-    // "ap" "inc" "ap" "inc" "ap" "inc" 0   =   3
-
-    is("#17 and #5 ex 2", ["ap", "inc", "ap", "inc", "ap", "inc", 0], 3);
-
-    is("add 1, 2, 3 with curry", ["ap", "ap", "add", 1, "ap", "ap", "add", 2, 3], 6);
-
-    is("#11 Example", ["ap", "ap", "eq", -10, -10], primitives.t);
-
-    is("#12 Example", ["ap", "ap", "lt", -10, -12], primitives.f);
-
-    is("#19 C Combinator ex 1", ["ap", "ap", "ap", "c", "add", 1, 2], 3);
-
-    is("#19 C Combinator ex 2", ["ap", "ap", "ap", "c", "div", 7, 14], 2);
-
-    is("#28 nil try 1", ["ap", "nil", "2"], primitives.t);
-    is("#28 nil try 2", ["ap", "nil", "3"], primitives.t);
-
-    is("#18 s ex 1", ["ap", "ap", "ap", "s", "add", "inc", "1"], 3);
-    is("#18 s ex 2", ["ap", "ap", "ap", "s", "mul", "ap", "add", "1", "6"], 42);
-
-    // is("#25", interp(["ap", "ap", "cons", "x0", "x1"]), interp(["ap", "ap", "cons", "x0", "x1"]))
-
-    is("23 ex 1", ["ap", "pwr2", 7], 128);
-
-    is("#26 car", ["ap", "car", "ap", "ap", "cons", "5", "7"], "5");
-    is("#27 cdr", ["ap", "cdr", "ap", "ap", "cons", "5", "7"], "7");
-    // (a b c d) -> (a . (b . (c . (d . nil))))
-
-    is("#29 isnil nil", ["ap", "isnil", "nil"], primitives.t);
-    is("#29 isnill nope", ["ap", "isnil", "ap", "ap", "cons", "x0", "x1"], primitives.f);
-
-    // ( )   =   nil
-    // is("#30 list construction empty", ["(", ")"], "nil");
-
-    // The [ap invalid 5] should never get evaluated
-    is("lazy evaluated", ["ap", "ap", "f", "ap", "invalid", "5", "42"], "42");
-
-    world = {
-        ":2048": getNext(["ap", "f", ":2048"])
-    };
-    is("not too recursive", ["ap", ":2048", "42"], "42");
-
-
-    // ap :2048 42
-    // -> ap ap f :2048 42
-    // -> ap ap [ (a) => (b) => b ] :2048 42
-    // -> ap [ (x) -> x ] 42
-    // -> 42
-
-    // ( x0 )   =   ap ap cons x0 nil
-    // is("#30 list one", interp(["ap", "car", "(", "x0", ",", "x1", ")"]), "x0");
-    // is("#30 list one", interp(["ap", "car", "ap", "cdr", "(", "x0", ",", "x1", ")"]), "x1");
-    // is("#30 list one", interp(["ap", "isnil", "ap", "cdr", "ap", "cdr", "(", "x0", ",", "x1", ")"]), primitives.t);
-
-    // ( x0 , x1 )   =   ap ap cons x0 ap ap cons x1 nil
-    // ( x0 , x1 , x2 )   =   ap ap cons x0 ap ap cons x1 ap ap cons x2 nil
-    // ( x0 , x1 , x2 , x5 )   =   ap ap cons x0 ap ap cons x1 ap ap cons x2 ap ap cons x5 nil
-
-    ok("modulate 0", modulate(0), '010');
-    ok("modulate 1", modulate(1), '01100001');
-    ok("modulate -1", modulate(-1), '10100001');
-    ok("modulate 4", modulate(4), '01100100');
-    ok("modulate 16", modulate(16), '0111000010000')
-
-    ok("demodulate to 0", demodulate('010'), 0);
-    ok("demodulate to 1", demodulate('01100001'), 1);
-    ok("demodulate to -1", demodulate('10100001'), -1);
-    ok("demodulate to 4", demodulate('01100100'), 4);
-    ok("demodulate to 16", demodulate('0111000010000'), 16);
-
-    is("#14 dem ex 1", ["ap", "dem", "ap", "mod", "42"], 42);
-    is("#14 dem ex 2", ["ap", "mod", "ap", "dem", "0111000010000"], "0111000010000");
-
-}
-
-const fs = require('fs');
-const { defaultMaxListeners } = require('stream');
-
-function loadGalaxy() {
-    let functions = {};
-
-    try {
-
-        const data = fs.readFileSync('galaxy.txt', 'UTF-8');
-
-        const lines = data.split(/\r?\n/);
-
-        let program = [];
-
-        lines.forEach((Line) => {
-            let programLine = Line.split(" ");
-            let memoryValue = programLine[0];
-            programLine.splice(0, 2);
-            functions[memoryValue] = getNext(programLine);
-        });
-
-        // console.log(functions);
-        console.log("Galaxy loaded!");
-        return functions;
-
-    } catch (err) {
-
-        console.error(err);
-
-    }
-
-}
-
-
-function listContentToString(list) {
-    // console.log("printing list content", {list})
-        if (primitives.isnil(list) == primitives.t) {
-            return "";
-        } else {
-            let head = primitives.car(list);
-            let tail = primitives.cdr(list);
-            // console.log("printing content with", { head, tail })
-            return listToString(head) + " " + listContentToString(tail);
-        }
-}
-
-function listToString(list) {
-    // console.log("printing list", {list})
-    if (list instanceof Function) {
-        return "(" + listContentToString(list).trim() + ")";
-    } else {
-        return list;
-    }
-}
-
-function listContentToList(list) {
-    // console.log("printing list content", {list})
-        if (primitives.isnil(list) == primitives.t) {
-            return [];
-        } else {
-            let head = primitives.car(list);
-            let tail = primitives.cdr(list);
-            // console.log("printing content with", { head, tail })
-            return [listToList(head), ...listContentToList(tail)];
-        }
-}
-
-function listToList(list) {
-    // console.log("printing list", {list})
-    if (list instanceof Function) {
-        return [ ...listContentToList(list) ];
-    } else {
-        return list;
-    }
-}
-
-// list = evil(["ap", "ap", "cons", "3", "nil"])
-// console.log(list.toString())
-// console.log(listToString(list));
-
-
-// list = evil(["ap", "ap", "ap", "cons", "3", "2", "nil"]);
-// console.log("ast of list", getNext(["ap", "ap", "cons", "2", "ap", "ap", "cons", "3", "nil"]))
-// list = evil(["ap", "ap", "cons", "2", "ap", "ap", "cons", "3", "nil"]); // (2 . (3 . nil))
-
-// console.log(list.toString())
-// list_tail = primitives.cdr(list)
-// console.log(list_tail);
-// console.log(primitives.car(list_tail))
-// list_tail_tail = primitives.cdr(list_tail);
-// console.log(list_tail_tail);
-
-// console.log(listToString(list))
-// console.log(listToString(list))
-
-// console.log(listToList(list))
-// console.log(listToList(list))
-
-// list2 = evil(["ap", "ap", "cons", "ap", "ap", "cons", "2", "nil", "ap", "ap", "cons", "5", "nil"])
-// console.log(listToList(list2))
-
-// // ap ap cons 2 ap ap cons 7 nil
-
-// // 3 . (2 . nil)
-// // ap ap cons 3 ap ap cons 463 nil => from galaxy.txt
-// console.log("list", list);
-// console.log("car", primitives.car(list))
-// console.log("cdr", primitives.cdr(list))
-// console.log("car cdr", primitives.car( primitives.cdr( list )))
-
-// console.log(primitives.car(primitives.cdr(list)))
-// console.log(listToString(list))
-
-
-let galaxy = loadGalaxy();
-world = galaxy;
-evil(["ap", "ap", "ap", "interact", "galaxy", "nil", "ap", "ap", "cons", "0", "ap", "ap", "cons", "0", "nil"])
-
-// debugger
-// runTests();
