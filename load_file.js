@@ -15,6 +15,7 @@
 // other stuff
 const fs = require('fs');
 
+const interpret = require("./trystuff.js");
 //import fs from "fs";
 
 

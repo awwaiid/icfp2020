@@ -36,8 +36,8 @@ let primitives = {
     div: (x) => (y) => Math.floor(parseInt(x) / parseInt(y)),
     add: (x) => (y) => parseInt(x) + parseInt(y),
     neg: (x) => -1 * parseInt(x),
-    if0: (a) => (b) => (c) => parseInt(a) == 0 ? b : c,
-    ifzero: (a) => (b) => (c) => parseInt(a) == 0 ? b : c,
+    if0: (a) => (b) => (c) => parseInt(a) === 0 ? b : c,
+    ifzero: (a) => (b) => (c) => parseInt(a) === 0 ? b : c,
     eq: (a) => (b) => parseInt(a) === parseInt(b) ? primitives.t : primitives.f,
     nil: (x) => primitives.t,
     lt: (x) => (y) => parseInt(x) < parseInt(y) ? primitives.t : primitives.f,
@@ -98,8 +98,9 @@ function extractLiteralList(proggie) {
 }
 
 function interpret(proggie) {
-    // console.log("interp:", {proggie});
+    console.log("interp:", {proggie});
     if(!Array.isArray(proggie)) {
+
         return [proggie];
     }
     let cmd = proggie[0];
@@ -107,20 +108,11 @@ function interpret(proggie) {
     //console.log("interpret", {cmd});
     if(cmd === "ap") {
         let ap_params = proggie.slice(1);
-
-        //console.log("In ap")
         let evaluated_partial_function = interpret(ap_params);
-
-        //console.log({evaluated_partial_function});
         let f = evaluated_partial_function[0];
-
         let evaluated_params = interpret(evaluated_partial_function.slice(1));
-
         let param = evaluated_params[0];
         let remaining_data = evaluated_params.slice(1);
-        
-        //let otherstuff = goodstuff.slice(2);
-        // console.log({f, param});
         let result = f(param);
         return interpret([result, ...remaining_data]);
     }
@@ -128,10 +120,51 @@ function interpret(proggie) {
         return [primitives[cmd], ...proggie.slice(1)];
     }
     if(world[cmd]) {
-        return interpret([...(world[cmd]), ...proggie.slice(1)]);
+        return interpret(world[cmd]);
     }
     if(cmd == "(") {
         return extractLiteralList(proggie.slice(1));
+    }
+    //console.log("Not ap ... just returning")
+    return proggie;
+}
+
+function interpret2(proggie) {
+    console.log("interp:", {proggie});
+    if(!Array.isArray(proggie)) {
+
+        if(primitives[proggie]) {
+            return primitives[proggie];
+        }
+
+        if(world[proggie]) {
+            return world[proggie];
+        }
+
+        return [proggie];
+    }
+    let cmd = proggie[0];
+    
+    //console.log("interpret", {cmd});
+    if(cmd === "ap") {
+        let ap_params = proggie.slice(1);
+        let evaluated_partial_function = interpret(ap_params);
+        let f = evaluated_partial_function[0];
+        let evaluated_params = evaluated_partial_function.slice(1);
+        let param = evaluated_params[0];
+        let remaining_data = evaluated_params.slice(1);
+        let result = f(param);
+        return interpret([result, ...remaining_data]);
+    }
+
+    if(cmd == "(") {
+        return extractLiteralList(proggie.slice(1));
+    }
+    if(primitives[cmd]) {
+        return [primitives[cmd], ...proggie.slice(1)];
+    }
+    if(world[cmd]) {
+        return interpret(world[cmd]);
     }
     //console.log("Not ap ... just returning")
     return proggie;
@@ -171,7 +204,9 @@ function runTests() {
 
     is("#12 Example", interp(["ap","ap","lt",-10,-12]), primitives.f);
 
-    is("#19 C Combinator ex 1", interp(["ap","ap","ap","c","add",1,2]), 3);
+    is("#19 C Combinator ex 1", interp(["ap","ap","ap","c","add",1,2]), 3);    
+
+    is("#19 C Combinator ex 2", interp(["ap","ap","ap","c","div",7,14]), 2);
 
     is("#28 nil try 1", interp(["ap", "nil", "2"]), primitives.t);
     is("#28 nil try 2", interp(["ap", "nil", "3"]), primitives.t);
@@ -180,6 +215,8 @@ function runTests() {
     is("#18 s ex 2", interp(["ap", "ap", "ap", "s", "mul", "ap", "add", "1", "6"]), 42);
 
     // is("#25", interp(["ap", "ap", "cons", "x0", "x1"]), interp(["ap", "ap", "cons", "x0", "x1"]))
+
+    is("23 ex 1", interp(["ap", "pwr2", 7]), 128);
 
     is("#26 car", interp(["ap", "car", "ap", "ap", "cons", "5", "7"]), "5");
     is("#27 cdr", interp(["ap", "cdr", "ap", "ap", "cons", "5", "7"]), "7");
@@ -190,6 +227,18 @@ function runTests() {
        
     // ( )   =   nil
     is("#30 list construction empty", interp(["(", ")"]), "nil");
+
+    // world = {
+    //     ":2048": ["ap", "f", ":2048"]
+    // };
+    // is("not too recursive", interp(["ap", ":2048", "42"]), "42");
+
+
+    // ap :2048 42
+    // -> ap ap f :2048 42
+    // -> ap ap [ (a) => (b) => b ] :2048 42
+    // -> ap [ (x) -> x ] 42
+    // -> 42
 
     // ( x0 )   =   ap ap cons x0 nil
     // is("#30 list one", interp(["ap", "car", "(", "x0", ",", "x1", ")"]), "x0");
