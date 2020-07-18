@@ -19,6 +19,54 @@
 // s
 // t
 
+
+function modulate(n) {
+    let isPositive = n >= 0;
+    let num = Math.abs(n);
+    let binaryString = num.toString(2);
+    let bitCount = binaryString.length;
+    let unaryLength = Math.ceil(bitCount / 4);
+    let binaryLength = unaryLength * 4;
+
+    // Easier than dealing with it later
+    if(num == 0) {
+        return "010";
+    }
+
+    let signPrefix = isPositive ? "01" : "10";
+    let unary = "1".repeat(unaryLength) + "0";
+    let paddedBinaryString = binaryString.padStart(binaryLength, "0");
+
+    return signPrefix + unary + paddedBinaryString;
+}
+
+function demodulate(text) {
+    // console.log({text})
+    let binary = text.split('');
+    // console.log({binary})
+    let sign1 = binary.shift();
+    let sign2 = binary.shift();
+    let isPositive = sign1 == "0";
+    let bitCount = 0;
+    // console.log({binary})
+    while(binary[0] == "1") {
+        bitCount++;
+        binary.shift();
+    }
+    if (bitCount == 0) {
+        return 0;
+    }
+    binary.shift(); // Drop the "0" after the unary length
+    // console.log("only number", {binary})
+    let number = parseInt(binary.join(''), 2);
+    if(!isPositive) {
+        number = number * -1;
+    }
+    // could do some safety check here ....
+    return number;
+}
+
+
 let primitives = {
     inc: (n) => parseInt(evalAst(n)) + 1,
     dec: (n) => parseInt(evalAst(n)) - 1,
@@ -55,6 +103,9 @@ let primitives = {
 
     vec: (x0) => (x1) => (x2) => evalAst(x2)(evalAst(x0))(evalAst(x1)),
     cons: (x0) => (x1) => (x2) => evalAst(x2)(evalAst(x0))(evalAst(x1)),
+
+    mod: (n) => modulate(evalAst(n)),
+    dem: (n) => demodulate(evalAst(n)),
     
     // cons: (x0) => (x1) => (x2) => {
     //     console.log({x2, x0, x1});
@@ -84,6 +135,12 @@ let primitives = {
     //     "ap", "ap", "ap", "ifzero", "ap", "car", x0, "(", "ap", "modem", "ap", "car", "ap", "cdr", x0, ",", "ap", "multipledraw", "ap", "car", "ap", "cdr", "ap", "cdr", x0, ")", "ap", "ap", "ap", "interact", x2, "ap", "modem", "ap", "car", "ap", "cdr", x0, "ap", "send", "ap", "car", "ap", "cdr", "ap", "cdr", "x0ap", "ap", "ap", "ifzero", "ap", "car", x0, "(", "ap", "modem", "ap", "car", "ap", "cdr", x0, ",", "ap", "multipledraw", "ap", "car", "ap", "cdr", "ap", "cdr", x0, ")", "ap", "ap", "ap", "interact", x2, "ap", "modem", "ap", "car", "ap", "cdr", x0, "ap", "send", "ap", "car", "ap", "cdr", "ap", "cdr", x0
     //   ]),
     // interact: (x2) => (x4) => (x3) => interp(["ap", "ap", "f38", x2, "ap", "ap", x2, x4, x3]),
+
+
+//     f38(protocol, (flag, newState, data)) = if flag == 0
+//                 then (modem(newState), multipledraw(data))
+//                 else interact(protocol, modem(newState), send(data))
+// interact(protocol, state, vector) = f38(protocol, protocol(state, vector))
 };
 
 let world = {};
@@ -171,6 +228,14 @@ function is(desc, a, b) {
     }
 }
 
+function ok(desc, a, b) {
+    if (a === b) {
+        console.log("GOOD JOB! # ", desc)
+    } else {
+        console.log("FAIL # ", desc, " got ", a, " expected ", b)
+    }
+}
+
 function runTests() {
 
     is("multiplication", ["ap","ap","mul","5","3"], 15);
@@ -246,15 +311,26 @@ function runTests() {
     // ( x0 , x1 )   =   ap ap cons x0 ap ap cons x1 nil
     // ( x0 , x1 , x2 )   =   ap ap cons x0 ap ap cons x1 ap ap cons x2 nil
     // ( x0 , x1 , x2 , x5 )   =   ap ap cons x0 ap ap cons x1 ap ap cons x2 ap ap cons x5 nil
+
+    ok("modulate 0",  modulate(0), '010');
+    ok("modulate 1",  modulate(1), '01100001');
+    ok("modulate -1", modulate(-1), '10100001');
+    ok("modulate 4",  modulate(4), '01100100');
+    ok("modulate 16", modulate(16), '0111000010000')
+
+    ok("demodulate to 0",  demodulate('010'), 0);
+    ok("demodulate to 1",  demodulate('01100001'), 1);
+    ok("demodulate to -1", demodulate('10100001'), -1);
+    ok("demodulate to 4",  demodulate('01100100'), 4);
+    ok("demodulate to 16", demodulate('0111000010000'), 16);
+
+    is("#14 dem ex 1", ["ap", "dem", "ap", "mod", "42"], 42);
+    is("#14 dem ex 2", ["ap", "mod", "ap", "dem", "0111000010000"], "0111000010000");
     
 }
 
 const fs = require('fs');
 const { defaultMaxListeners } = require('stream');
-
-// const interpret = require("./trystuff.js");
-//import fs from "fs";
-
 
 function loadGalaxy() {
   let functions = {};
@@ -288,9 +364,9 @@ try {
 
 
 
-let galaxy = loadGalaxy();
-world = galaxy;
-evil(["ap", "interact", "galaxy"])
+// let galaxy = loadGalaxy();
+// world = galaxy;
+// evil(["ap", "interact", "galaxy"])
 
 
-// runTests();
+runTests();
