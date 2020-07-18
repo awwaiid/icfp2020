@@ -76,6 +76,16 @@ let primitives = {
         return x0Val(x2Val)(x1Val);
     },
 
+    // b
+    // ap ap ap b x0 x1 x2   =   ap x0 ap x1 x2
+    // ap ap ap b inc dec x0   =   x0
+    b: x0 => x1 => x2 => {
+        let evalX0 = evalAst(x0);
+        let evalX1 = evalAst(x1);
+        let evalX2 = evalAst(x2);
+        return evalX0(evalX1(evalX2));
+    },
+
     mul: (x) => (y) => parseInt(evalAst(x)) * parseInt(evalAst(y)),
     div: (x) => (y) => Math.floor(parseInt(evalAst(x)) / parseInt(evalAst(y))),
     add: (x) => (y) => parseInt(evalAst(x)) + parseInt(evalAst(y)),
@@ -86,8 +96,6 @@ let primitives = {
     nil: (x) => primitives.t,
     lt: (x) => (y) => parseInt(evalAst(x)) < parseInt(evalAst(y)) ? primitives.t : primitives.f,
     pwr2: (x) => 2 ** parseInt(evalAst(x)),
-
- 
 
     mod: (n) => modulate(evalAst(n)),
     dem: (n) => demodulate(evalAst(n)),
@@ -129,6 +137,7 @@ let primitives = {
     // ap draw ( ap ap vec 5 3 , ap ap vec 6 3 , ap ap vec 4 4 , ap ap vec 6 4 , ap ap vec 4 5 )   =   |picture6|
 
     draw: (list) => {
+        console.log(listtoList(list));
         // convert list to js list
         // [ [5,3]. [6,3]]
         // call draw stuff on the coordinates in the js list
@@ -157,6 +166,7 @@ let primitives = {
 
 
     send: (data) => {
+        console.log("send", listToList(data));
         let modData = primitives.mod(data);
         // do an HTTP thing, get back result
         let result = "010";
@@ -200,7 +210,11 @@ let primitives = {
     // interact: x2 => x4 => x3 => (primitives.f38(x2))(x2(x4))(x3)
 
     // interact(protocol, state, vector) = f38(protocol, protocol(state, vector))
-    interact: protocol => state => vector => (primitives.f38(protocol))(protocol(state)(vector))
+    interact: protocol => state => vector => {
+        console.log("interact", {protocol, state, vector})
+        let evalProtocol = evalAst(protocol);
+        return (primitives.f38(evalProtocol))(evalProtocol(state)(vector));
+    }
 };
 
 let world = {};
@@ -252,6 +266,7 @@ function evalAst(ast) {
         if (nodeType == "ap") {
             let f = evalAst(ast[1]);
             let param = ast[2];
+            // console.log("applying", {f, param})
 
             if (!(f instanceof Function)) {
                 console.log("evalAst error f is not a function", { f, param });
@@ -262,6 +277,7 @@ function evalAst(ast) {
         }
     } else {
         if (primitives[ast]) {
+            // console.log("Found primitive", ast, primitives[ast])
             return primitives[ast];
         }
         if (world[ast]) {
@@ -473,7 +489,7 @@ function listToList(list) {
 
 // list = evil(["ap", "ap", "ap", "cons", "3", "2", "nil"]);
 // console.log("ast of list", getNext(["ap", "ap", "cons", "2", "ap", "ap", "cons", "3", "nil"]))
-list = evil(["ap", "ap", "cons", "2", "ap", "ap", "cons", "3", "nil"]); // (2 . (3 . nil))
+// list = evil(["ap", "ap", "cons", "2", "ap", "ap", "cons", "3", "nil"]); // (2 . (3 . nil))
 
 // console.log(list.toString())
 // list_tail = primitives.cdr(list)
@@ -506,7 +522,7 @@ list = evil(["ap", "ap", "cons", "2", "ap", "ap", "cons", "3", "nil"]); // (2 . 
 
 let galaxy = loadGalaxy();
 world = galaxy;
-evil(["ap", "interact", "galaxy"])
+evil(["ap", "ap", "ap", "interact", "galaxy", "nil", "ap", "ap", "cons", "0", "ap", "ap", "cons", "0", "nil"])
 
 // debugger
 // runTests();
