@@ -24,6 +24,18 @@ function loadGalaxy() {
     }
 }
 
+import readline from 'readline';
+
+const rl = readline.createInterface({ input: process.stdin , output: process.stdout });
+
+const getLine = (function () {
+    const getLineGen = (async function* () {
+        for await (const line of rl) {
+            yield line;
+        }
+    })();
+    return async () => ((await getLineGen.next()).value);
+})();
 
 
 async function main() {
@@ -55,7 +67,9 @@ async function main() {
         //     await render(imagesData[1], 'output2.png')
         // }
 
-        let input = readlineSync.question("> ");
+        // let input = readlineSync.question("> ");
+        console.log("Enter coords: ");
+        let input = await getLine();
         let [x, y] = input.split(' ');
         vector.x = x;
         vector.y = y;

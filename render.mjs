@@ -19,13 +19,28 @@ export async function renderAll(images, fileName) {
 
     let maxX = Math.max(...xValues);
     let minX = Math.min(...xValues);
+    if(Math.abs(maxX) > Math.abs(minX)) {
+        maxX = Math.abs(maxX);
+        minX = -1 * Math.abs(maxX);
+    } else {
+        maxX = Math.abs(minX);
+        minX = -1 * Math.abs(minX);
+    }
     let width = maxX - minX + 1;
-    let xOffset = 0 - minX;
-    console.log({minX, maxX, width, xOffset})
-
+    
     let maxY = Math.max(...yValues);
     let minY = Math.min(...yValues);
+    if(Math.abs(maxY) > Math.abs(minY)) {
+        maxY = Math.abs(maxY);
+        minY = -1 * Math.abs(maxY);
+    } else {
+        maxY = Math.abs(minY);
+        minY = -1 * Math.abs(minY);
+    }
     let height = maxY - minY + 1;
+
+    let xOffset = 0 - minX;
+    console.log({minX, maxX, width, xOffset})
     let yOffset = 0 - minY;
     console.log({minY, maxY, height, yOffset});
 
@@ -47,7 +62,13 @@ export async function renderAll(images, fileName) {
                 let point = image[i]
                 let x = parseInt(point[0]) + xOffset;
                 let y = parseInt(point[1]) + yOffset;
-                bitmap.setPixel(x, y, colors[index]);    
+                let current = bitmap.getPixel(x, y);
+                // console.log({current})
+                let newColor = colors[index];
+                current.r = (current.r + newColor.r) / 2;
+                current.g = (current.g + newColor.g) / 2;
+                current.b = (current.b + newColor.b) / 2;
+                bitmap.setPixel(x, y, current);    
             }
         }
     });

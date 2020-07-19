@@ -47,9 +47,8 @@ export function modulate(n) {
     return signPrefix + unary + paddedBinaryString;
 }
 
-export function demodulate(text) {
-    // console.log({text})
-    let binary = text.split('');
+
+export function demodulateHelper(binary) {
     // console.log({binary})
     let sign1 = binary.shift();
     let sign2 = binary.shift();
@@ -65,12 +64,19 @@ export function demodulate(text) {
     }
     binary.shift(); // Drop the "0" after the unary length
     // console.log("only number", {binary})
-    let number = parseInt(binary.join(''), 2);
+    bitCount = bitCount * 4; // each one is 4 bits actually
+    let numBinary = binary.splice(0, bitCount);
+    let number = parseInt(numBinary.join(''), 2);
     if (!isPositive) {
         number = number * -1;
     }
     // could do some safety check here ....
     return number;
+}
+
+export function demodulate(text) {
+    let binary = text.split('');
+    return demodulateHelper(binary);
 }
 
 //  coords = [
@@ -88,7 +94,7 @@ export function demodulate(text) {
 //  ]
 
 // [ 0 ] -> 11 '010' 00
-// [ 0, [ 3 ]] -> 11 "010" 11 11 "3" 
+// [ 0, [ 3 ]] -> 11 "010" 11 11 "3"
 
 export function modulate_list(coords) {
     // console.log("modulate_list", { coords });
@@ -96,7 +102,7 @@ export function modulate_list(coords) {
     if (Array.isArray(coords)) {
         modulated += '11';  /// open paren
         coords.forEach((elem, index) => {
-            // console.log(elem);    
+            // console.log(elem);
             modulated += modulate_list(elem); // add a comma or open paren then close paren
             if(index < coords.length - 1) {
                 // not the last element, add a comma
@@ -125,9 +131,11 @@ import axios from 'axios';
 // let alienResponse = send(data);
 async function send(data) {
     let encodedData = modulate_list(data);
-    console.log("Posting:", encodedData)
+    console.log("Posting:", {data, encodedData})
     let response = await axios.post('https://icfpc2020-api.testkontur.ru/aliens/send?apiKey=a9f3b65f22c448ecb5f650a7ff8e770c', encodedData);
+    console.log("axios response", {response});
     let result = demodulate(response.data);
+    console.log("demodulated result", {result});
     return result;
 }
 
