@@ -102,17 +102,21 @@ function runTests() {
     // ( x0 , x1 , x2 )   =   ap ap cons x0 ap ap cons x1 ap ap cons x2 nil
     // ( x0 , x1 , x2 , x5 )   =   ap ap cons x0 ap ap cons x1 ap ap cons x2 ap ap cons x5 nil
 
-    ok("modulate 0", Engine.modulate(0), '010');
-    ok("modulate 1", Engine.modulate(1), '01100001');
-    ok("modulate -1", Engine.modulate(-1), '10100001');
-    ok("modulate 4", Engine.modulate(4), '01100100');
-    ok("modulate 16", Engine.modulate(16), '0111000010000')
+    ok("modulate 0", RefEngine.modulate(0), '010');
+    ok("modulate 1", RefEngine.modulate(1), '01100001');
+    ok("modulate -1", RefEngine.modulate(-1), '10100001');
+    ok("modulate 4", RefEngine.modulate(4), '01100100');
+    ok("modulate 16", RefEngine.modulate(16), '0111000010000');
 
-    ok("Engine.demodulate to 0", Engine.demodulate('010'), 0);
-    ok("Engine.demodulate to 1", Engine.demodulate('01100001'), 1);
-    ok("Engine.demodulate to -1", Engine.demodulate('10100001'), -1);
-    ok("Engine.demodulate to 4", Engine.demodulate('01100100'), 4);
-    ok("Engine.demodulate to 16", Engine.demodulate('0111000010000'), 16);
+    ok("demodulate to 0", RefEngine.demodulate('010'), 0);
+    ok("demodulate to 1", RefEngine.demodulate('01100001'), 1);
+    ok("demodulate to -1", RefEngine.demodulate('10100001'), -1);
+    ok("demodulate to 4", RefEngine.demodulate('01100100'), 4);
+    ok("demodulate to 16", RefEngine.demodulate('0111000010000'), 16);
+
+    ok("modulate_list (0)", RefEngine.modulate_list([0]), '1101000');
+    ok("modulate_list (1,(2,3),4)", RefEngine.modulate_list([1,[2,3],4]), '1101100001111101100010110110001100110110010000');
+
 
     is("#13 mod ex 1", ["ap", "dem", "ap", "mod", "42"], 42);
     is("#14 dem ex 2", ["ap", "mod", "ap", "dem", "0111000010000"], "0111000010000");
