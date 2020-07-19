@@ -1,12 +1,14 @@
 
 import * as Engine from './engine.mjs';
+import * as RefEngine from './ref_engine.mjs';
 
 function is(desc, a, b) {
-    let aVal = Engine.evil(a);
+    // let aVal = Engine.evil(a);
+    let aVal = RefEngine.evil( RefEngine.parse(a)).name;
     if (aVal === b) {
         console.log("OUTSTANDING! # ", desc)
     } else {
-        console.log("FAIL # ", desc, " got ", a, " expected ", b)
+        console.log("FAIL # ", desc, " got ", aVal, " expected ", b)
     }
 }
 
@@ -14,7 +16,7 @@ function ok(desc, a, b) {
     if (a === b) {
         console.log("GOOD JOB! # ", desc)
     } else {
-        console.log("FAIL # ", desc, " got ", a, " expected ", b)
+        console.log("FAIL # ", desc, " got ", aVal, " expected ", b)
     }
 }
 
@@ -42,9 +44,9 @@ function runTests() {
 
     is("add 1, 2, 3 with curry", ["ap", "ap", "add", 1, "ap", "ap", "add", 2, 3], 6);
 
-    is("#11 Example", ["ap", "ap", "eq", -10, -10], Engine.primitives.t);
+    is("#11 Example", ["ap", "ap", "eq", -10, -10], "t");
 
-    is("#12 Example", ["ap", "ap", "lt", -10, -12], Engine.primitives.f);
+    is("#12 Example", ["ap", "ap", "lt", -10, -12], "f");
 
     is("#19 C Combinator ex 1", ["ap", "ap", "ap", "c", "add", 1, 2], 3);
     is("#19 C Combinator ex 2", ["ap", "ap", "ap", "c", "div", 7, 14], 2);
@@ -54,8 +56,8 @@ function runTests() {
     is("#20 B Combinator ex 2", ["ap", "ap", "ap", "ap", "b", "mul",  "dec", "ap", "ap", "add", 1, 2, 3], 6);
 
 
-    is("#28 nil try 1", ["ap", "nil", "2"], Engine.primitives.t);
-    is("#28 nil try 2", ["ap", "nil", "3"], Engine.primitives.t);
+    is("#28 nil try 1", ["ap", "nil", "2"], "t");
+    is("#28 nil try 2", ["ap", "nil", "3"], "t");
 
     is("#18 s ex 1", ["ap", "ap", "ap", "s", "add", "inc", "1"], 3);
     is("#18 s ex 2", ["ap", "ap", "ap", "s", "mul", "ap", "add", "1", "6"], 42);
@@ -69,8 +71,8 @@ function runTests() {
     is("#27 cdr", ["ap", "cdr", "ap", "ap", "cons", "5", "7"], "7");
     // (a b c d) -> (a . (b . (c . (d . nil))))
 
-    is("#29 isnil nil", ["ap", "isnil", "nil"], Engine.primitives.t);
-    is("#29 isnill nope", ["ap", "isnil", "ap", "ap", "cons", "x0", "x1"], Engine.primitives.f);
+    is("#29 isnil nil", ["ap", "isnil", "nil"], "t");
+    is("#29 isnill nope", ["ap", "isnil", "ap", "ap", "cons", "x0", "x1"], "f");
 
     // ( )   =   nil
     // is("#30 list construction empty", ["(", ")"], "nil");
@@ -78,9 +80,10 @@ function runTests() {
     // The [ap invalid 5] should never get evaluated
     is("lazy evaluated", ["ap", "ap", "f", "ap", "invalid", "5", "42"], "42");
 
-    Engine.setWorld({
-        ":2048": Engine.getNext(["ap", "f", ":2048"])
+    RefEngine.setFunctions({
+        ":2048": RefEngine.parse(["ap", "f", ":2048"])
     });
+    
     is("not too recursive", ["ap", ":2048", "42"], "42");
 
 
@@ -111,10 +114,8 @@ function runTests() {
     ok("Engine.demodulate to 4", Engine.demodulate('01100100'), 4);
     ok("Engine.demodulate to 16", Engine.demodulate('0111000010000'), 16);
 
-    is("#14 dem ex 1", ["ap", "dem", "ap", "mod", "42"], 42);
+    is("#13 mod ex 1", ["ap", "dem", "ap", "mod", "42"], 42);
     is("#14 dem ex 2", ["ap", "mod", "ap", "dem", "0111000010000"], "0111000010000");
-
 }
-
 
 runTests();
