@@ -1,49 +1,81 @@
 
-const draw = require('imagejs');
+import draw from "imagejs";
 
-//drawPictureFile([ [0,0], [10,10], [15,7], [9,9] ], "output.png");
+export function render(coordinates, fileName) {
 
-/// draw
-// ap draw ( )   =   |picture1|
-// ap draw ( ap ap vec 1 1 )   =   |picture2|
-// ap draw ( ap ap vec 1 2 )   =   |picture3|
-// ap draw ( ap ap vec 2 5 )   =   |picture4|
-// ap draw ( ap ap vec 1 2 , ap ap vec 3 1 )   =   |picture5|
-// ap draw ( ap ap vec 5 3 , ap ap vec 6 3 , ap ap vec 4 4 , ap ap vec 6 4 , ap ap vec 4 5 )   =   |picture6|
-
-// function draw(list) {
-//     // extarct coords from list
-//     drawPictureFile(coords, asdf)
-// }
-
-function drawPictureFile(coordinates, fileName) {
+    console.log(coordinates);
 
     let xValues = [];
-    for (i = 0; i < coordinates.length; i++) {
+    for (let i = 0; i < coordinates.length; i++) {
         xValues.push(coordinates[i][0]);
     }
-    let width = Math.max(...xValues) + 1;
+    let width = Math.max(...xValues);
 
     let yValues = [];
-    for (i = 0; i < coordinates.length; i++) {
+    for (let i = 0; i < coordinates.length; i++) {
         yValues.push(coordinates[i][1]);
     }
-    let height = Math.max(...yValues) + 1;
+    let height = Math.max(...yValues);
+
+
+    width = 32;
+    height = 32;
+
     console.log({width, height});
     console.log({xValues,yValues});
 
     let bitmap = new draw.Bitmap({width, height, color: {r: 255, g: 255, b:255, a:255}});
-    //let canvas = draw.newCanvas;
-    //let ctx = canvas.getContext('2d');
-    coordinates.forEach((point) => {
+    
+    var black = {r:1, g:0, b:0};
+    bitmap.setPixel(1,1, black);
+    bitmap.setPixel(2,2, black);
+    bitmap.setPixel(3,3, black);
+    bitmap.setPixel(4,4, black);
+    bitmap.setPixel(5,10, black);
+    bitmap.setPixel(5,11, black);
+
+    for (let i = 0; i < coordinates.length; i++) {
+        let point = coordinates[i]
+        console.log(point);
         let x = point[0];
         let y = point[1];
-        //ctx.putImageData()
-        bitmap.setPixel(x, y, 0, 0, 0);
-    });
+        console.log(x);
+        console.log(y);
+        bitmap.setPixel(x, y, black);    
+    }
+
+
     
-    return bitmap.writeFile(fileName)
+    //let canvas = draw.newCanvas;
+    //let ctx = canvas.getContext('2d');
+    // console.log(coordinates);
+    // coordinates.forEach((point) => {
+    //     console.log(point);
+    //     let x = point[0];
+    //     let y = point[1];
+
+    //     console.log(x, y);
+
+    //     var black = {r:1, g:0, b:0}; // alpha defaults to 255
+    //     bitmap.setPixel(x, y, black);
+        
+    //     console.log(bitmap.getPixel(x,y));
+    // });
+    
+    return writeToFile(bitmap, fileName)
     .then(function() {
         // bitmap has been saved
     });
+}
+
+function writeToFile(Bitmap, filename) {
+    // Bitmap.resize(
+    //     {
+    //         width: 300, height: 300,
+    //         algorithm: "bicubicInterpolation",
+    //         fit: "pad",
+    //         padColor: {r:255, g:255, b:255, a:255}
+    //     }
+    // );
+    return Bitmap.writeFile(filename);
 }

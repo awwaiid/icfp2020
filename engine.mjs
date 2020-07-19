@@ -1,5 +1,7 @@
 
-import { listToList } from "./list_utils.mjs";
+import { render } from "./render.mjs";
+
+
 
 // 01 1110 000100101001
 // |  |    |
@@ -142,10 +144,13 @@ export let primitives = {
     // ap draw ( ap ap vec 5 3 , ap ap vec 6 3 , ap ap vec 4 4 , ap ap vec 6 4 , ap ap vec 4 5 )   =   |picture6|
 
     draw: (list) => {
-        console.log(listtoList(list));
+        //console.log(listToList(list));
         // convert list to js list
         // [ [5,3]. [6,3]]
         // call draw stuff on the coordinates in the js list
+
+        render(listToList(list), "tmp.png");
+
         return primitives.t;
     },
 
@@ -321,6 +326,48 @@ function evalAst(ast) {
         }
         evalDepth--;
         return ast;
+    }
+}
+
+function listContentToString(list) {
+    // console.log("printing list content", {list})
+        if (primitives.isnil(list) == primitives.t) {
+            return "";
+        } else {
+            let head = primitives.car(list);
+            let tail = primitives.cdr(list);
+            // console.log("printing content with", { head, tail })
+            return listToString(head) + " " + listContentToString(tail);
+        }
+}
+
+export function listToString(list) {
+    // console.log("printing list", {list})
+    if (list instanceof Function) {
+        return "(" + listContentToString(list).trim() + ")";
+    } else {
+        return list;
+    }
+}
+
+function listContentToList(list) {
+    // console.log("printing list content", {list})
+        if (primitives.isnil(list) == primitives.t) {
+            return [];
+        } else {
+            let head = primitives.car(list);
+            let tail = primitives.cdr(list);
+            // console.log("printing content with", { head, tail })
+            return [listToList(head), ...listContentToList(tail)];
+        }
+}
+
+export function listToList(list) {
+    // console.log("printing list", {list})
+    if (list instanceof Function) {
+        return [ ...listContentToList(list) ];
+    } else {
+        return list;
     }
 }
 
