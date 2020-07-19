@@ -72,6 +72,7 @@ export function demodulateHelper(binary) {
         binary.shift();
     }
     if (bitCount == 0) {
+        binary.shift();
         return new Atom(0n);
     }
     binary.shift(); // Drop the "0" after the unary length
@@ -184,36 +185,41 @@ function demodulateListHelper(binary) {
 export function demodulate_list(bit_str) {
     let binary = bit_str.split('');
     // maybe slice off leading '11'?
-    return demodulateListHelper(binary);
-
-    let data = [];
-    let row = -1;
-
-    while(binary.length > 0) {
-        console.log(binary.length);
-        peek = binary[0].toString() + binary[1].toString();
-        peek2 = binary[2].toString() + binary[3].toString();
-        switch(peek) {
-            case '11':  // open parent
-                binary.splice(0,2);
-                row++;
-                break;
-            case '00': // close paren
-                binary.splice(0,2);
-                row--;
-                if (peek2 == '11') { binary.splice(0,2); }  // we can toss the comma
-                break;
-            default:
-                let num = demodulateHelper(binary);
-                if (row <= 0) {
-                    data.push(num);
-                }
-                else {
-                    data[row].push(num);
-                }
-                if (peek2 == '11') { binary.splice(0,2); }  // we can toss the comma
-        }
+    let result = demodulateListHelper(binary);
+    if (binary.length > 0) {
+        console.log({bit_str, binary});
+        throw "There is stuff left!";
     }
+    return result;
+
+    // let data = [];
+    // let row = -1;
+
+    // while(binary.length > 0) {
+    //     console.log(binary.length);
+    //     peek = binary[0].toString() + binary[1].toString();
+    //     peek2 = binary[2].toString() + binary[3].toString();
+    //     switch(peek) {
+    //         case '11':  // open parent
+    //             binary.splice(0,2);
+    //             row++;
+    //             break;
+    //         case '00': // close paren
+    //             binary.splice(0,2);
+    //             row--;
+    //             if (peek2 == '11') { binary.splice(0,2); }  // we can toss the comma
+    //             break;
+    //         default:
+    //             let num = demodulateHelper(binary);
+    //             if (row <= 0) {
+    //                 data.push(num);
+    //             }
+    //             else {
+    //                 data[row].push(num);
+    //             }
+    //             if (peek2 == '11') { binary.splice(0,2); }  // we can toss the comma
+    //     }
+    // }
     
 }
 
@@ -237,11 +243,11 @@ async function send(data) {
         }
     );
     // console.log("axios response", {response});
-    console.log("axios response raw data", response.data);
+    // console.log("axios response raw data", response.data);
     let result = demodulate_list(response.data);
-    console.log("demodulated result");
-    console.dir(result, {depth: 1000});
-    console.log(listToList(result));
+    // console.log("demodulated result");
+    // console.dir(result, {depth: 1000});
+    // console.log(listToList(result));
     return result;
 }
 
@@ -414,10 +420,12 @@ function parseBigInt(v, base=10) {
   }
 
 function asNum(n) {
-    // console.log("asNum", {n});
     if (n instanceof Atom)
         return parseBigInt(n.name)
-    // return parseInt(n)
+
+    // console.log("asNum");
+    // console.dir(n, {depth: 1000})
+    // console.trace();
     throw "not a number";
 }
 
