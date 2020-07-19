@@ -27,16 +27,28 @@ export let t = new Atom("t")
 export let f = new Atom("f")
 export let nil = new Atom("nil")
 
-export function modulate(n) {
-    let isPositive = n >= 0;
-    let num = Math.abs(n);
+function bigAbs(n) {
+    if(n >= 0n) {
+        return n;
+    } else {
+        return -1n * n;
+    }
+}
+
+export function modulate(aNum) {
+    if(aNum == "nil") {
+        return "00";
+    }
+    let n = parseBigInt(aNum);
+    let isPositive = n >= 0n;
+    let num = bigAbs(n);
     let binaryString = num.toString(2);
     let bitCount = binaryString.length;
     let unaryLength = Math.ceil(bitCount / 4);
     let binaryLength = unaryLength * 4;
 
     // Easier than dealing with it later
-    if (num == 0) {
+    if (num == 0n) {
         return "010";
     }
 
@@ -60,15 +72,15 @@ export function demodulateHelper(binary) {
         binary.shift();
     }
     if (bitCount == 0) {
-        return new Atom(0);
+        return new Atom(0n);
     }
     binary.shift(); // Drop the "0" after the unary length
     // console.log("only number", {binary})
     bitCount = bitCount * 4; // each one is 4 bits actually
     let numBinary = binary.splice(0, bitCount);
-    let number = parseInt(numBinary.join(''), 2);
+    let number = parseBigInt(numBinary.join(''), 2);
     if (!isPositive) {
-        number = number * -1;
+        number = number * -1n;
     }
     // could do some safety check here ....
     return new Atom(number);
@@ -287,7 +299,7 @@ export async function interact(state, event) {
     console.log("newState", listToList(newState))
     console.log("data", listToList(data))
    
-    if (asNum(flag) == 0) {
+    if (asNum(flag) == 0n) {
         return [newState, data];
     }
 
@@ -296,14 +308,15 @@ export async function interact(state, event) {
 }
 
 export function evil(expr) {
-    // console.log("eval", expr)
+    // console.log("eval")
+    // console.dir(expr, { depth: 1000});
     if(expr.evaluated) {
         return expr.evaluated;
     }
     let initialExpr = expr;
     while(true) {
         let result = tryEval(expr);
-        if(result == expr) {
+        if(result == expr) { // do a deep compare?
             initialExpr.evaluated = result;
             return result;
         }
@@ -318,7 +331,8 @@ export function setFunctions(things) {
 }
 
 function tryEval(expr) {
-    // console.log("tryEval", {expr})
+    // console.log("tryEval");
+    // console.dir(expr, { depth: 1000});
     if (expr.evaluated) {
         return expr.evaluated
     }
@@ -331,15 +345,15 @@ function tryEval(expr) {
         let fun = evil(expr.fun);
         let x = expr.arg;
         if (fun instanceof Atom) {
-            if (fun.name == "neg") return new Atom(-1 * asNum(evil(x)));
+            if (fun.name == "neg") return new Atom(-1n * asNum(evil(x)));
             if (fun.name == "i") return x;
             if (fun.name == "nil") return t;
             if (fun.name == "isnil") return new Ap(x, new Ap(t, new Ap(t, f)));
             if (fun.name == "car") return new Ap(x, t);
             if (fun.name == "cdr") return new Ap(x, f);
-            if (fun.name == "inc") return new Atom(asNum(evil(x)) + 1);
-            if (fun.name == "dec") return new Atom(asNum(evil(x)) - 1);
-            if (fun.name == "pwr2") return new Atom(2 ** asNum(evil(x)));
+            if (fun.name == "inc") return new Atom(asNum(evil(x)) + 1n);
+            if (fun.name == "dec") return new Atom(asNum(evil(x)) - 1n);
+            if (fun.name == "pwr2") return new Atom(2n ** asNum(evil(x)));
             if (fun.name == "mod") return new Atom(modulate(asNum(evil(x))));
             if (fun.name == "dem") return new Atom(demodulate(evil(x).name));
         }
@@ -351,7 +365,7 @@ function tryEval(expr) {
                 if (fun2.name == "f") return x;
                 if (fun2.name == "add") return new Atom(asNum(evil(x)) + asNum(evil(y)));
                 if (fun2.name == "mul") return new Atom(asNum(evil(x)) * asNum(evil(y)));
-                if (fun2.name == "div") return new Atom(Math.floor(asNum(evil(y)) / asNum(evil(x))));
+                if (fun2.name == "div") return new Atom(asNum(evil(y)) / asNum(evil(x)));
                 if (fun2.name == "lt") return asNum(evil(y)) < asNum(evil(x)) ? t : f;
                 if (fun2.name == "eq") return asNum(evil(x)) == asNum(evil(y)) ? t : f;
                 if (fun2.name == "cons") return evilCons(y, x);
@@ -377,10 +391,32 @@ function evilCons(a, b) {
     return res;
 }
 
+function parseBigInt(v, base=10) {
+    // console.log("parseBigInt", v)
+    let str = v.toString();
+
+    let isNegative = false;
+    if(str[0] == '-') {
+        isNegative = true;
+        str = str.slice(1);
+    }
+
+    base = BigInt(base)
+    var bigint = BigInt(0);
+    for (var i = 0; i < str.length; i++) {
+      var code = str[str.length-1-i].charCodeAt(0) - 48; if(code >= 10) code -= 39
+      bigint += base**BigInt(i) * BigInt(code)
+    }
+    if(isNegative) {
+        bigint *= -1n;
+    }
+    return bigint
+  }
+
 function asNum(n) {
-    // console.log({n})
+    // console.log("asNum", {n});
     if (n instanceof Atom)
-        return parseInt(n.name)
+        return parseBigInt(n.name)
     // return parseInt(n)
     throw "not a number";
 }
