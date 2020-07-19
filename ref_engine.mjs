@@ -151,6 +151,9 @@ function listContentToList(list) {
         } else if (list instanceof Ap) {
             let f = list.fun;
             let arg = list.arg;
+
+            // console.log("Checking for sublist based on", f)
+
             if(f instanceof Ap && f.fun.name == "cons") {
                 let element = listToList(f.arg);
                 let restOfList = listContentToList( arg ); 
@@ -163,8 +166,11 @@ function listContentToList(list) {
                 }
             }
       
-            // console.log("printing content with", { head, tail })
-            return [listToList(head), ...listContentToList(tail)];
+            // console.log("printing content with", { f, arg })
+            return [listToList(f), ...listContentToList(arg)];
+        } else if (list instanceof Atom) {
+            // Normal lists shouldn't get here
+            return [list.name];
         }
 }
 
@@ -176,6 +182,17 @@ export function listToList(list) {
     } else {
         return list.name;
     }
+}
+
+function myCar(list) {
+    // Ap(Ap(cons, head),tail)
+    // console.log("myCar");
+    // console.dir(list)
+    return list.fun.arg;
+}
+
+function myCdr(list) {
+    return list.arg;
 }
 
 
@@ -191,10 +208,16 @@ export function listToList(list) {
 
 function interact(state, event) {
     console.log("interact")
-    let expr = new Ap( new Ap(new Atom("galaxy"), state), event)
+    let expr = new Ap( new Ap(new Atom("galaxy"), state), event);
     let res = evil(expr);
     // Note: res will be modulatable here (consists of cons, nil and numbers only)
-    let [flag, newState, data] = listToList(res);
+    let flag = myCar(res);
+    let newState = myCar(myCdr(res));
+    let data = myCar(myCdr(myCdr(res)));
+
+    // console.log(listToList(data))
+    // asdf
+   
     if (asNum(flag) == 0) {
         return [newState, data];
     }
@@ -309,7 +332,7 @@ function tryEval(expr) {
                 if (fun2.name == "f") return x;
                 if (fun2.name == "add") return new Atom(asNum(evil(x)) + asNum(evil(y)));
                 if (fun2.name == "mul") return new Atom(asNum(evil(x)) * asNum(evil(y)));
-                if (fun2.name == "div") return new Atom(asNum(evil(y)) / asNum(evil(x)));
+                if (fun2.name == "div") return new Atom(Math.floor(asNum(evil(y)) / asNum(evil(x))));
                 if (fun2.name == "lt") return asNum(evil(y)) < asNum(evil(x)) ? t : f;
                 if (fun2.name == "eq") return asNum(evil(x)) == asNum(evil(y)) ? t : f;
                 if (fun2.name == "cons") return evilCons(y, x);
@@ -348,7 +371,7 @@ function asNum(n) {
     // console.log({n})
     if (n instanceof Atom)
         return parseInt(n.name)
-    return parseInt(n)
+    // return parseInt(n)
     throw "not a number";
 }
 
@@ -364,6 +387,8 @@ function asNum(n) {
 let state = nil;
 let vector = new Vect(0, 0);
 
+import readlineSync from 'readline-sync';
+
 function main() {
     while(true) {
         console.log("main")
@@ -371,8 +396,13 @@ function main() {
         let click = new Ap(new Ap(cons, new Atom(vector.X)), new Atom(vector.Y));
         let [newState, images] = interact(state, click)
         //PRINT_IMAGES(images)
-        console.log("images", images);
-        // vector = REQUEST_CLICK_FROM_USER()
+        // console.log("images");
+        // console.dir(images, {depth: 200})
+        console.log(listToList(images))
+        let input = readlineSync.question("> ");
+        let [x, y] = input.split(' ');
+        vector.x = x;
+        vector.y = y;
         state = newState;
     }
 }
@@ -423,5 +453,18 @@ export function parse(tokenStream) {
 // console.log(listToList(bigList));
 // console.log(listToList(nestedList));
 
+// [ [ [1,2], [3,4] ] ]
+// ap ap cons ap ap cons ap ap cons ap ap cons 1 ap ap cons 2 ap ap cons ap ap cons 3 ap ap cons 4 nil nil  nil
+
+// (3 . (5 . nil)) <----
+// (3 . 5)         <----
+
+// let p = parse([ "ap", "ap", "cons", "-1", "-3"]);
+// let p = parse([
+//     "ap", "ap", "cons", "ap", "ap", "cons", "-1", "-3",
+//     "ap", "ap", "cons", "ap", "ap", "cons", "7", "21",
+//    "nil"]);
+// //let p = parse(["ap", "cons", "ap", "ap", "cons", "ap", "ap", "cons", "-1", "-3", "ap", "ap", "cons", "ap", "ap", "cons", "0", "-3", "ap", "ap", "cons", "ap", "ap", "cons", "1", "-3", "nil"]);
+// console.log(listToList(p))
 
 main();
