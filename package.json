@@ -1,0 +1,25 @@
+{
+  "name": "icfp2020",
+  "version": "1.0.0",
+  "description": "``` # Run unit tests node unit_tests.js",
+  "main": "load_file.js",
+  "dependencies": {
+    "axios": "^0.19.2",
+    "imagejs": "^0.0.9",
+    "readline-sync": "^1.4.10"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/awwaiid/icfp2020.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/awwaiid/icfp2020/issues"
+  },
+  "homepage": "https://github.com/awwaiid/icfp2020#readme"
+}
