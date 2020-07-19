@@ -91,7 +91,7 @@ function renderPage() {
     `;
 }
 
-app.get('/', function(req, res){
+app.get('/play', function(req, res){
    res.send(renderPage());
 });
 
@@ -106,9 +106,9 @@ app.get('/click/', async (req, res) => {
     res.send(renderPage());
 });
 
-app.get('/setup', async (req, res) => {
+app.get('/', async (req, res) => {
     await setup();
-    res.send("setup complete");
+    res.redirect('/play')
 });
 
 
