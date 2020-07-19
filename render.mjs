@@ -3,8 +3,6 @@ import draw from "imagejs";
 
 export function render(coordinates, fileName) {
 
-    console.log(coordinates);
-
     let xValues = [];
     for (let i = 0; i < coordinates.length; i++) {
         xValues.push(coordinates[i][0]);

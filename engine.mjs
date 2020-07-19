@@ -148,8 +148,9 @@ export let primitives = {
         // convert list to js list
         // [ [5,3]. [6,3]]
         // call draw stuff on the coordinates in the js list
-
-        render(listToList(list), "tmp.png");
+        
+        let filename = "pics/" + Date.now() + ".png";
+        render(listToList(list), filename);
 
         return primitives.t;
     },
