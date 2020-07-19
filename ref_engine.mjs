@@ -94,6 +94,15 @@ export function demodulate(text) {
     return number;
 }
 
+function send(data) {
+    let encodedData = modulate(data);
+    // await axios.post(....)
+    // blocking HTTP call?
+    let rawResult;
+    return demodulate(rawResult);
+
+}
+
 // Map<string, Expr> functions = PARSE_FUNCTIONS("galaxy.txt")
 
 import fs from 'fs';
@@ -145,8 +154,13 @@ function listContentToList(list) {
             if(f instanceof Ap && f.fun.name == "cons") {
                 let element = listToList(f.arg);
                 let restOfList = listContentToList( arg ); 
-                console.log({restOfList})
-                return [element, ...restOfList];
+                // console.log({restOfList})
+                if(restOfList) {
+                    return [element, ...restOfList];
+
+                } else {
+                    return [element];
+                }
             }
       
             // console.log("printing content with", { head, tail })
@@ -155,8 +169,8 @@ function listContentToList(list) {
 }
 
 export function listToList(list) {
-    console.log("listToList", {depth: 20})
-    console.dir( list);
+    // console.log("listToList", {depth: 20})
+    // console.dir( list);
     if (list instanceof Ap) {
         return [ ...listContentToList(list) ];
     } else {
@@ -176,6 +190,7 @@ export function listToList(list) {
 //     return interact(newState, SEND_TO_ALIEN_PROXY(data))
 
 function interact(state, event) {
+    console.log("interact")
     let expr = new Ap( new Ap(new Atom("galaxy"), state), event)
     let res = evil(expr);
     // Note: res will be modulatable here (consists of cons, nil and numbers only)
@@ -183,6 +198,9 @@ function interact(state, event) {
     if (asNum(flag) == 0) {
         return [newState, data];
     }
+    // TODO actually convert data to modulate 0's and 1's and do a POST to the server
+    // get the response back, demodulate it, put that in alienResponse
+    // let alienResponse = send(data);
     let alienResponse = new Atom("0"); // SEND_TO_ALIEN_PROXY(data)
     return interact(newState, alienResponse)
     // return interact(newState, SEND_TO_ALIEN_PROXY(data))
@@ -199,7 +217,7 @@ function interact(state, event) {
 //             return result
 //         expr = result
 export function evil(expr) {
-    // console.log("eval", {expr})
+    // console.log("eval", expr)
     if(expr.evaluated) {
         return expr.evaluated;
     }
@@ -327,8 +345,10 @@ function evilCons(a, b) {
 //         return PARSE_NUMBER(n.Name)
 //     ERROR("not a number")
 function asNum(n) {
+    // console.log({n})
     if (n instanceof Atom)
         return parseInt(n.name)
+    return parseInt(n)
     throw "not a number";
 }
 
@@ -346,10 +366,12 @@ let vector = new Vect(0, 0);
 
 function main() {
     while(true) {
+        console.log("main")
+        // TODO get the x,y from the user or the bot
         let click = new Ap(new Ap(cons, new Atom(vector.X)), new Atom(vector.Y));
         let [newState, images] = interact(state, click)
         //PRINT_IMAGES(images)
-        console.log(images);
+        console.log("images", images);
         // vector = REQUEST_CLICK_FROM_USER()
         state = newState;
     }
