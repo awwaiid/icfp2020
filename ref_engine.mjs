@@ -248,6 +248,7 @@ async function send(data) {
     // console.log("demodulated result");
     // console.dir(result, {depth: 1000});
     // console.log(listToList(result));
+
     return result;
 }
 
@@ -303,7 +304,7 @@ export async function interact(state, event) {
 
     console.log("flag", listToList(flag));
     console.log("newState", listToList(newState))
-    console.log("data", listToList(data))
+    //console.log("data", listToList(data))
    
     if (asNum(flag) == 0n) {
         return [newState, data];
