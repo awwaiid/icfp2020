@@ -45,13 +45,48 @@ async function main() {
     let state = RefEngine.nil;
     let vector = { x: 0, y: 0 };
 
+    // Just before the entry screen
+    // [ '1', [ 11 ], '0', 'nil' ]
+    // click 1 4
+    let preScreen = RefEngine.parse([
+        "ap", "ap", "cons", 1,
+        "ap", "ap", "cons",
+            "ap", "ap", "cons", "11",
+            "nil",
+        "ap", "ap", "cons", "0",
+        "ap", "ap", "cons", "nil",
+        "nil"
+    ]);
+    let preScreenClick = { x: 1, y: 4 };
+
+    // Load up the state of the screen just BEFORE the big galaxy
+    // and say thta we are clicking at 1, 4
+    state = preScreen;
+    vector = preScreenClick;
+
+    // Galaxy start screen
+    // [ '2', [ '1', -1 ], '0', 'nil' ]
+
+    let entryScreen = RefEngine.parse([
+        "ap", "ap", "cons", 2,
+        "ap", "ap", "cons",
+            "ap", "ap", "cons", "1",
+            "ap", "ap", "cons", "-1",
+            "nil", // list or vector?
+        "ap", "ap", "cons", "0",
+        "ap", "ap", "cons", "nil",
+        "nil"
+    ]);
+
+    // state = entryScreen;
+
     while(true) {
         console.log("main")
         // TODO get the x,y from the user or the bot
         let click = RefEngine.parse(["ap", "ap", "cons", vector.x, vector.y]);
         // let click = new RefEngine.Ap(new RefEngine.Ap(cons, new RefEngine.Atom(vector.x)), new RefEngine.Atom(vector.y));
         console.log("click:", click)
-        let [newState, images] = RefEngine.interact(state, click)
+        let [newState, images] = await RefEngine.interact(state, click)
 
         //PRINT_IMAGES(images)
         // console.log("images");

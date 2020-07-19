@@ -60,7 +60,7 @@ export function demodulateHelper(binary) {
         binary.shift();
     }
     if (bitCount == 0) {
-        return 0;
+        return new Atom(0);
     }
     binary.shift(); // Drop the "0" after the unary length
     // console.log("only number", {binary})
@@ -71,7 +71,7 @@ export function demodulateHelper(binary) {
         number = number * -1;
     }
     // could do some safety check here ....
-    return number;
+    return new Atom(number);
 }
 
 export function demodulate(text) {
@@ -119,8 +119,90 @@ export function modulate_list(coords) {
     return modulated;
 }
 
-// not sure we need this yet
+// "2" -> 2
+// [ "2" ] -> ["2"]
+
+function demodulateListHelper(binary) {
+    let peek = binary[0].toString() + binary[1].toString();
+    if(peek == '11') {
+        binary.splice(0,2);
+        let element = demodulateListHelper(binary);
+
+        return new Ap(
+            new Ap(
+                cons,
+                element
+            ),
+            demodulateListHelper(binary)
+        );
+        // return [element, ...demodulateListHelper(binary)];
+    } else if (peek == '00') {
+        binary.splice(0,2);
+        return nil;
+    } else {
+         let element = demodulateHelper(binary);
+         return element;
+    }
+}
+
+
+
+// // expecting to receive ONE thing -- either an element or a list
+// function demodulateListHelper(binary) {
+//     let peek = binary[0].toString() + binary[1].toString();
+//     if(peek == '11') {
+//         binary.splice(0,2);
+//         let element = demodulateListHelper(binary);
+//         return [element, ...demodulateListHelper(binary)];
+//     } else if (peek == '00') {
+//         binary.splice(0,2);
+//         return [];
+//     } else {
+//          let element = demodulateHelper(binary);
+//          return element;
+//     }
+// }
+
+// [ 1, [2, 3], 4]
+// ,1 ,,2 ,3 ; ,4 ;
+// , 1, ,2, 3;, 4;
+// ,1 ,2 3 ; 4 ;
+
+
 export function demodulate_list(bit_str) {
+    let binary = bit_str.split('');
+    // maybe slice off leading '11'?
+    return demodulateListHelper(binary);
+
+    let data = [];
+    let row = -1;
+
+    while(binary.length > 0) {
+        console.log(binary.length);
+        peek = binary[0].toString() + binary[1].toString();
+        peek2 = binary[2].toString() + binary[3].toString();
+        switch(peek) {
+            case '11':  // open parent
+                binary.splice(0,2);
+                row++;
+                break;
+            case '00': // close paren
+                binary.splice(0,2);
+                row--;
+                if (peek2 == '11') { binary.splice(0,2); }  // we can toss the comma
+                break;
+            default:
+                let num = demodulateHelper(binary);
+                if (row <= 0) {
+                    data.push(num);
+                }
+                else {
+                    data[row].push(num);
+                }
+                if (peek2 == '11') { binary.splice(0,2); }  // we can toss the comma
+        }
+    }
+    
 }
 
 
@@ -130,12 +212,24 @@ import axios from 'axios';
 // get the response back, demodulate it, put that in alienResponse
 // let alienResponse = send(data);
 async function send(data) {
-    let encodedData = modulate_list(data);
-    console.log("Posting:", {data, encodedData})
-    let response = await axios.post('https://icfpc2020-api.testkontur.ru/aliens/send?apiKey=a9f3b65f22c448ecb5f650a7ff8e770c', encodedData);
-    console.log("axios response", {response});
-    let result = demodulate(response.data);
-    console.log("demodulated result", {result});
+    let dataList = listToList(data);
+    let encodedData = modulate_list(dataList);
+    console.log("Posting:", {dataList, encodedData})
+    let response = await axios.post(
+        'https://icfpc2020-api.testkontur.ru/aliens/send?apiKey=a9f3b65f22c448ecb5f650a7ff8e770c',
+        encodedData,
+        {
+            responseType: 'text',
+            transformResponse: res => res, // no transform
+            headers: { 'Content-Type': 'text/plain' }
+        }
+    );
+    // console.log("axios response", {response});
+    console.log("axios response raw data", response.data);
+    let result = demodulate_list(response.data);
+    console.log("demodulated result");
+    console.dir(result, {depth: 1000});
+    console.log(listToList(result));
     return result;
 }
 
@@ -180,8 +274,8 @@ function myCdr(list) {
     return list.arg;
 }
 
-export function interact(state, event) {
-    console.log("interact", listToList(event))
+export async function interact(state, event) {
+    console.log("in interact", listToList(event))
     let expr = new Ap( new Ap(new Atom("galaxy"), state), event);
     let res = evil(expr);
     // Note: res will be modulatable here (consists of cons, nil and numbers only)
@@ -197,8 +291,8 @@ export function interact(state, event) {
         return [newState, data];
     }
 
-    let alienResponse = send(data);
-    return interact(newState, alienResponse);
+    let alienResponse = await send(data);
+    return await interact(newState, alienResponse);
 }
 
 export function evil(expr) {

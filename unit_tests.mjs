@@ -13,10 +13,10 @@ function is(desc, a, b) {
 }
 
 function ok(desc, a, b) {
-    if (a === b) {
+    if (JSON.stringify(a) === JSON.stringify(b)) {
         console.log("GOOD JOB! # ", desc)
     } else {
-        console.log("FAIL # ", desc, " got ", aVal, " expected ", b)
+        console.log("FAIL # ", desc, " got ", a, " expected ", b)
     }
 }
 
@@ -108,18 +108,23 @@ function runTests() {
     ok("modulate 4", RefEngine.modulate(4), '01100100');
     ok("modulate 16", RefEngine.modulate(16), '0111000010000');
 
-    ok("demodulate to 0", RefEngine.demodulate('010'), 0);
-    ok("demodulate to 1", RefEngine.demodulate('01100001'), 1);
-    ok("demodulate to -1", RefEngine.demodulate('10100001'), -1);
-    ok("demodulate to 4", RefEngine.demodulate('01100100'), 4);
-    ok("demodulate to 16", RefEngine.demodulate('0111000010000'), 16);
+    ok("demodulate to 0", RefEngine.listToList(RefEngine.demodulate('010')), 0);
+    ok("demodulate to 1", RefEngine.listToList(RefEngine.demodulate('01100001')), 1);
+    ok("demodulate to -1", RefEngine.listToList(RefEngine.demodulate('10100001')), -1);
+    ok("demodulate to 4", RefEngine.listToList(RefEngine.demodulate('01100100')), 4);
+    ok("demodulate to 16", RefEngine.listToList(RefEngine.demodulate('0111000010000')), 16);
 
     ok("modulate_list (0)", RefEngine.modulate_list([0]), '1101000');
     ok("modulate_list (1,(2,3),4)", RefEngine.modulate_list([1,[2,3],4]), '1101100001111101100010110110001100110110010000');
 
+    ok("demodulate_list modulated (0)", RefEngine.listToList(RefEngine.demodulate_list('1101000')), [0]);
+    ok("demodulate_list modulated (1,(2,3),4)", RefEngine.listToList(RefEngine.demodulate_list('1101100001111101100010110110001100110110010000')), [1, [2, 3], 4]);
+    ok("demodulate_list modulated (1,(2,3),4)", RefEngine.listToList(RefEngine.demodulate_list('1101100001110111110010110100011101100')), [1, 23099]);
 
-    is("#13 mod ex 1", ["ap", "dem", "ap", "mod", "42"], 42);
-    is("#14 dem ex 2", ["ap", "mod", "ap", "dem", "0111000010000"], "0111000010000");
+
+
+    // is("#13 mod ex 1", ["ap", "dem", "ap", "mod", "42"], 42);
+    // is("#14 dem ex 2", ["ap", "mod", "ap", "dem", "0111000010000"], "0111000010000");
 }
 
 runTests();
