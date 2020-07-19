@@ -79,15 +79,38 @@ app.use(express.static('public'));
 
 function renderPage() {
     return `
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+<script>
+$(document).ready(function() {
+    $("#galaxy").on("click", function(event) {
+        bounds=this.getBoundingClientRect();
+        var left=bounds.left;
+        var top=bounds.top;
+        var x = event.pageX - left;
+        var y = event.pageY - top;
+        var cw=this.clientWidth
+        var ch=this.clientHeight
+        var iw=this.naturalWidth
+        var ih=this.naturalHeight
+        var px=x/cw*iw
+        var py=y/ch*ih
+        //alert("click on "+this.tagName+" at pixel ("+px+","+py+") mouse pos ("+x+"," + y+ ") relative to boundingClientRect at ("+left+","+top+") client image size: "+cw+" x "+ch+" natural image size: "+iw+" x "+ih );
+        $('#x').val(parseInt(px - (iw / 2)));
+        $('#y').val(parseInt(py - (ih / 2)));
+        $('#theform').submit();
+    });
+});
+</script>
      
    Hello world!
 
-   <form action="/click" method="get">
-   <input type="text" name="x">
-   <input type="text" name="y">
+   <form id=theform action="/click" method="get">
+   <input id=x type="text" name="x">
+   <input id=y type="text" name="y">
    <input type=submit />
    </form>
-   <img src="/output.png">
+   <img id="galaxy" src="/output.png">
     `;
 }
 
@@ -98,7 +121,6 @@ app.get('/play', function(req, res){
 app.get('/click/', async (req, res) => {
     let x = req.query.x;
     let y = req.query.y;
-    // console.log({req})
     console.log("Click!", { x, y});
     vector.x = x;
     vector.y = y;
