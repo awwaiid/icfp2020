@@ -102,7 +102,7 @@ import axios from 'axios';
 async function send(data) {
     let encodedData = modulate(data);
     console.log("Posting:", encodedData)
-    let response = await axios.post('https://icfp2020-api.testkontur.ru/aliens/send?apiKey=a9f3b65f22c448ecb5f650a7ff8e770c', encodedData);
+    let response = await axios.post('https://icfpc2020-api.testkontur.ru/aliens/send?apiKey=a9f3b65f22c448ecb5f650a7ff8e770c', encodedData);
     let result = demodulate(response.data);
     return result;
     // await axios.post(....)
@@ -226,6 +226,7 @@ function interact(state, event) {
 
     console.log("flag", listToList(flag));
     console.log("newState", listToList(newState))
+    console.log("data", listToList(data))
 
     // console.log(listToList(data))
     // asdf
@@ -402,7 +403,7 @@ let vector = new Vect(0, 0);
 
 import readlineSync from 'readline-sync';
 // import readline from 'readline';
-import { render } from './render.mjs';
+import { renderAll } from './render.mjs';
 
 // let rl = readline.createInterface({
 //     input: process.stdin,
@@ -422,9 +423,14 @@ async function main() {
         // console.dir(images, {depth: 200})
         let imagesData = listToList(images);
         // console.log(imagesData);
-        // await renderAll(imageData, 'output.png')
-        await render(imagesData[0], 'output.png')
-        await render(imagesData[1], 'output2.png')
+        await renderAll(imagesData, 'output.png')
+        // if(imagesData[0] && imagesData[0] != "nil") {
+        //     await render(imagesData[0], 'output.png');
+        // }
+        // if(imagesData[1] && imagesData[1] != "nil") {
+
+        //     await render(imagesData[1], 'output2.png')
+        // }
 
         let input = readlineSync.question("> ");
         let [x, y] = input.split(' ');
