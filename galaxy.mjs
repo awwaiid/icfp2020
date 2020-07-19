@@ -66,12 +66,7 @@ async function main() {
         // TODO get the x,y from the user or the bot
         let click = RefEngine.parse(["ap", "ap", "cons", vector.x, vector.y]);
         // let click = new RefEngine.Ap(new RefEngine.Ap(cons, new RefEngine.Atom(vector.x)), new RefEngine.Atom(vector.y));
-        console.log("click:", click)
-
-
-
         let [newState, images] = await RefEngine.interact(state, click);
-
 
         //PRINT_IMAGES(images)
         // console.log("images");
