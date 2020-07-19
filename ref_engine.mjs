@@ -94,12 +94,21 @@ export function demodulate(text) {
     return number;
 }
 
-function send(data) {
+import axios from 'axios';
+
+    // TODO actually convert data to modulate 0's and 1's and do a POST to the server
+    // get the response back, demodulate it, put that in alienResponse
+    // let alienResponse = send(data);
+async function send(data) {
     let encodedData = modulate(data);
+    console.log("Posting:", encodedData)
+    let response = await axios.post('https://icfp2020-api.testkontur.ru/aliens/send?apiKey=a9f3b65f22c448ecb5f650a7ff8e770c', encodedData);
+    let result = demodulate(response.data);
+    return result;
     // await axios.post(....)
     // blocking HTTP call?
-    let rawResult;
-    return demodulate(rawResult);
+    // let rawResult;
+    // return demodulate(rawResult);
 
 }
 
@@ -207,7 +216,7 @@ function myCdr(list) {
 //     return interact(newState, SEND_TO_ALIEN_PROXY(data))
 
 function interact(state, event) {
-    console.log("interact")
+    console.log("interact", listToList(event))
     let expr = new Ap( new Ap(new Atom("galaxy"), state), event);
     let res = evil(expr);
     // Note: res will be modulatable here (consists of cons, nil and numbers only)
@@ -215,16 +224,20 @@ function interact(state, event) {
     let newState = myCar(myCdr(res));
     let data = myCar(myCdr(myCdr(res)));
 
+    console.log("flag", listToList(flag));
+    console.log("newState", listToList(newState))
+
     // console.log(listToList(data))
     // asdf
    
     if (asNum(flag) == 0) {
         return [newState, data];
     }
+
     // TODO actually convert data to modulate 0's and 1's and do a POST to the server
     // get the response back, demodulate it, put that in alienResponse
-    // let alienResponse = send(data);
-    let alienResponse = new Atom("0"); // SEND_TO_ALIEN_PROXY(data)
+    let alienResponse = send(data);
+    //let alienResponse = new Atom("0"); // SEND_TO_ALIEN_PROXY(data)
     return interact(newState, alienResponse)
     // return interact(newState, SEND_TO_ALIEN_PROXY(data))
 }
@@ -388,17 +401,31 @@ let state = nil;
 let vector = new Vect(0, 0);
 
 import readlineSync from 'readline-sync';
+// import readline from 'readline';
+import { render } from './render.mjs';
 
-function main() {
+// let rl = readline.createInterface({
+//     input: process.stdin,
+//     output: process.stdout
+// });
+
+async function main() {
     while(true) {
         console.log("main")
         // TODO get the x,y from the user or the bot
-        let click = new Ap(new Ap(cons, new Atom(vector.X)), new Atom(vector.Y));
+        let click = new Ap(new Ap(cons, new Atom(vector.x)), new Atom(vector.y));
+        console.log("click:", click)
         let [newState, images] = interact(state, click)
+
         //PRINT_IMAGES(images)
         // console.log("images");
         // console.dir(images, {depth: 200})
-        console.log(listToList(images))
+        let imagesData = listToList(images);
+        // console.log(imagesData);
+        // await renderAll(imageData, 'output.png')
+        await render(imagesData[0], 'output.png')
+        await render(imagesData[1], 'output2.png')
+
         let input = readlineSync.question("> ");
         let [x, y] = input.split(' ');
         vector.x = x;
@@ -467,4 +494,6 @@ export function parse(tokenStream) {
 // //let p = parse(["ap", "cons", "ap", "ap", "cons", "ap", "ap", "cons", "-1", "-3", "ap", "ap", "cons", "ap", "ap", "cons", "0", "-3", "ap", "ap", "cons", "ap", "ap", "cons", "1", "-3", "nil"]);
 // console.log(listToList(p))
 
-main();
+main().then(() => {
+    console.log("main is done?")
+})
