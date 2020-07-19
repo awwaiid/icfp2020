@@ -3,26 +3,7 @@ import readlineSync from 'readline-sync';
 import { renderAll } from './render.mjs';
 import fs from 'fs';
 
-function loadGalaxy() {
-    let functions = {};
-    try {
-        const data = fs.readFileSync('galaxy.txt', 'UTF-8');
-        const lines = data.split(/\r?\n/);
-        let program = [];
-        lines.forEach((Line) => {
-            let programLine = Line.split(" ");
-            let memoryValue = programLine[0];
-            programLine.splice(0, 2);
-            functions[memoryValue] = RefEngine.parse(programLine);
-        });
 
-        console.log("Galaxy loaded!");
-
-        return functions;
-    } catch (err) {
-        console.error(err);
-    }
-}
 
 import readline from 'readline';
 
@@ -40,7 +21,7 @@ const getLine = (function () {
 
 async function main() {
     // Load up all of the galaxy functions
-    RefEngine.setFunctions( loadGalaxy() );
+    RefEngine.setFunctions( RefEngine.loadGalaxy() );
 
     let state = RefEngine.nil;
     let vector = { x: 0, y: 0 };
@@ -86,7 +67,11 @@ async function main() {
         let click = RefEngine.parse(["ap", "ap", "cons", vector.x, vector.y]);
         // let click = new RefEngine.Ap(new RefEngine.Ap(cons, new RefEngine.Atom(vector.x)), new RefEngine.Atom(vector.y));
         console.log("click:", click)
-        let [newState, images] = await RefEngine.interact(state, click)
+
+
+
+        let [newState, images] = await RefEngine.interact(state, click);
+
 
         //PRINT_IMAGES(images)
         // console.log("images");

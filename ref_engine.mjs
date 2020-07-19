@@ -439,3 +439,25 @@ export function parse(tokenStream) {
     }
     return new Atom(token);
 }
+
+import fs from 'fs';
+export function loadGalaxy() {
+    let functions = {};
+    try {
+        const data = fs.readFileSync('galaxy.txt', 'UTF-8');
+        const lines = data.split(/\r?\n/);
+        let program = [];
+        lines.forEach((Line) => {
+            let programLine = Line.split(" ");
+            let memoryValue = programLine[0];
+            programLine.splice(0, 2);
+            functions[memoryValue] = parse(programLine);
+        });
+
+        console.log("Galaxy loaded!");
+
+        return functions;
+    } catch (err) {
+        console.error(err);
+    }
+}

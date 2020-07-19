@@ -5,6 +5,7 @@
   "main": "load_file.js",
   "dependencies": {
     "axios": "^0.19.2",
+    "express": "^4.17.1",
     "imagejs": "^0.0.9",
     "readline-sync": "^1.4.10"
   },
