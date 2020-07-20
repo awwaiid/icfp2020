@@ -8,17 +8,17 @@ function resultData(result) {
     
     let gameInfo = result[2]; // assume nil
 
-    let role = (gameInfo != 'nil') && gameInfo[1]; // 0 = attack, 1 = defend
+    let role = gameInfo && (gameInfo != 'nil') && gameInfo[1]; // 0 = attack, 1 = defend
     
     let gameState = result[3]; // assume nil
     
-    let gameTick = (gameState != 'nil') && gameState[0];
-    let gameX0 = (gameState != 'nil') && gameState[1];
+    let gameTick = gameState && (gameState != 'nil') && gameState[0];
+    let gameX0 = gameState && (gameState != 'nil') && gameState[1];
 
-    let shipsAndCommands = (gameState != 'nil') && gameState[2];
+    let shipsAndCommands = gameState && (gameState != 'nil') && gameState[2];
     let ships = {}; // mine, enemy
     // console.dir(shipsAndCommands);
-    if(gameState != 'nil' && shipsAndCommands != 'nil') {
+    if(gameState && gameState != 'nil' && shipsAndCommands != 'nil') {
         shipsAndCommands.forEach(entry => {
             let ship = entry[0];
             let commands = entry[1];
@@ -104,7 +104,6 @@ async function run(doSetup = true) {
             parsedResult = resultData(result);
             console.dir(parsedResult, { depth:1000});
         }
-
 
         // Shoot laser at the other player
         // (2, shipId, target, x3) where target is a position vector 
