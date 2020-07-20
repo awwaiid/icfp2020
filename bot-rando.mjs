@@ -46,9 +46,7 @@ function resultData(result) {
     }
 }
 
-function sleep(ms) {// Self Destruct
-    // result = await RefEngine.sendJs(['4', playerKey, [['1', resultData(result).ship.mine.shipId]]]);
-    // console.dir(resultData(result), { depth:1000});
+function sleep(ms) {
     return new Promise((resolve) => {
       setTimeout(resolve, ms);
     });
@@ -75,7 +73,6 @@ async function run(doSetup = true) {
 
     }
     
-
     await sleep(100);
 
     // Join
