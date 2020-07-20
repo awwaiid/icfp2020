@@ -7,10 +7,11 @@ function resultData(result) {
     let gameStage = result[1]; 
     
     let gameInfo = result[2];
+
     let role = gameInfo[1]; // 0 = attack, 1 = defend
-
+    
     let gameState = result[3];
-
+    
     let gameTick = gameState != 'nil' && gameState[0];
     let gameX0 = gameState != 'nil' && gameState[1];
 
@@ -45,11 +46,17 @@ function resultData(result) {
     }
 }
 
-function sleep(ms) {
+function sleep(ms) {// Self Destruct
+    // result = await RefEngine.sendJs(['4', playerKey, [['1', resultData(result).ship.mine.shipId]]]);
+    // console.dir(resultData(result), { depth:1000});
     return new Promise((resolve) => {
       setTimeout(resolve, ms);
     });
   }   
+
+  function getRandomInt(max) {
+    return Math.floor(Math.random() * Math.floor(max));
+  }
 
 let playerKey;
 
@@ -68,6 +75,9 @@ async function run(doSetup = true) {
 
     }
     
+
+    await sleep(100);
+
     // Join
     //  [ '2', 6051288275017681946n, 'nil' ]
     result = await RefEngine.sendJs(['2', playerKey, 'nil']);
@@ -88,16 +98,35 @@ async function run(doSetup = true) {
     let parsedResult = resultData(result);
 
     while(parsedResult.stage == 1n) {
+
+        let action = 'nothing';
+
         // Do nothing
-        result = await RefEngine.sendJs(['4', playerKey, 'nil']);
-        parsedResult = resultData(result);
-        console.dir(parsedResult, { depth:1000});
-await sleep(100);
+        if(action == 'nothing') {
+            result = await RefEngine.sendJs(['4', playerKey, 'nil']);
+            parsedResult = resultData(result);
+            console.dir(parsedResult, { depth:1000});
+        }
+
+
+        // Shoot laser at the other player
+        // (2, shipId, target, x3) where target is a position vector 
+        if(action == 'laser') {
+            result = await RefEngine.sendJs(['4', playerKey, [['2', parsedResult.ship.mine.shipId, [0n, 0n] ]]]);
+            parsedResult = resultData(result);
+            console.dir(parsedResult, { depth:1000});
+        }
+
+        // Self Destruct
+        if(action == 'self-destruct') {
+            result = await RefEngine.sendJs(['4', playerKey, [['1', resultData(result).ship.mine.shipId]]]);
+            console.dir(resultData(result), { depth:1000});
+        }
+
+        // Wait a bit before the next end I guess
+        await sleep(100);
     }
 
-    // Self Destruct
-    // result = await RefEngine.sendJs(['4', playerKey, [['1', resultData(result).ship.mine.shipId]]]);
-    // console.dir(resultData(result), { depth:1000});
 
 }
 
