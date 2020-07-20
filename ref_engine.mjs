@@ -226,16 +226,21 @@ export function demodulate_list(bit_str) {
 
 import axios from 'axios';
 
+let serverUrl =  'https://icfpc2020-api.testkontur.ru/aliens/send?apiKey=a9f3b65f22c448ecb5f650a7ff8e770c';
+export function setServerUrl(url) {
+    serverUrl = url;
+}
+
 // TODO actually convert data to modulate 0's and 1's and do a POST to the server
 // get the response back, demodulate it, put that in alienResponse
 // let alienResponse = send(data);
 async function send(data) {
     let dataList = consToJs(data);
-    console.log("Send to aliens:", dataList);
+    // console.log("Send to aliens:", dataList);
     let encodedData = modulate_list(dataList);
     // console.log("Posting:", {dataList, encodedData})
     let response = await axios.post(
-        'https://icfpc2020-api.testkontur.ru/aliens/send?apiKey=a9f3b65f22c448ecb5f650a7ff8e770c',
+        serverUrl,
         encodedData,
         {
             responseType: 'text',
@@ -248,9 +253,19 @@ async function send(data) {
     let result = demodulate_list(response.data);
     // console.log("demodulated result");
     // console.dir(result, {depth: 1000});
-    console.log("got alien response", consToJs(result));
+    // console.log("got alien response", consToJs(result));
 
     return result;
+}
+
+function jsToCons(jsData) {
+  let binaryData = modulate_list(jsData);
+  return demodulate_list(binaryData);
+}
+
+export async function sendJs(data) {
+  let result = await send(jsToCons(data)); // maybe add await?
+  return consToJs(result);
 }
 
 function listContentToList(list) {
@@ -465,35 +480,5 @@ export function loadGalaxy() {
         console.error(err);
     }
 }
-
-
-
-
-// create
-// [ '1', 2n ]
-
-// Join
-//  [ '2', 6051288275017681946n, 'nil' ]
-
-// start
-// [ '3', 6051288275017681946n, 'nil' ]
-
-// commands
-// (4, playerKey, commands)
-
-
-// Accelerate command
-
-// (0, shipId, vector)
-
-// Accelerates ship identified by shipId to the direction opposite to vector.
-// Detonate command
-
-// (1, shipId)
-
-// Detonates ship identified by shipId.
-// Shoot command
-
-// (2, shipId, target, x3)
 
 
