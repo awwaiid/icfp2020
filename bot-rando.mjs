@@ -91,9 +91,10 @@ async function run(doSetup = true) {
 }
 
 
-
 const serverUrl = process.argv[2];
 playerKey = process.argv[3];
+
+console.log({ serverUrl, playerKey });
 
 if(serverUrl) {
     RefEngine.setServerUrl(serverUrl);
