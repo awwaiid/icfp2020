@@ -84,7 +84,7 @@ async function run(doSetup = true) {
 
     // start
     // [ '3', 6051288275017681946n, 'nil' ]
-    result = await RefEngine.sendJs(['3', playerKey, 'nil']);
+    result = await RefEngine.sendJs(['3', playerKey, ['1', '1', '1', '1']]);
     console.dir(resultData(result), { depth:1000});
 
     await sleep(100);
