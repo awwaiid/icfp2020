@@ -264,6 +264,7 @@ function jsToCons(jsData) {
 }
 
 export async function sendJs(data) {
+    console.log("Sending", data);
   let result = await send(jsToCons(data)); // maybe add await?
   return consToJs(result);
 }
