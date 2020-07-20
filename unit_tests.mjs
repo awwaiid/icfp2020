@@ -119,18 +119,18 @@ function runTests() {
     ok("modulate 4", RefEngine.modulate(4), '01100100');
     ok("modulate 16", RefEngine.modulate(16), '0111000010000');
 
-    ok("demodulate to 0", RefEngine.listToList(RefEngine.demodulate('010')), 0n);
-    ok("demodulate to 1", RefEngine.listToList(RefEngine.demodulate('01100001')), 1n);
-    ok("demodulate to -1", RefEngine.listToList(RefEngine.demodulate('10100001')), -1n);
-    ok("demodulate to 4", RefEngine.listToList(RefEngine.demodulate('01100100')), 4n);
-    ok("demodulate to 16", RefEngine.listToList(RefEngine.demodulate('0111000010000')), 16n);
+    ok("demodulate to 0", RefEngine.consToJs(RefEngine.demodulate('010')), 0n);
+    ok("demodulate to 1", RefEngine.consToJs(RefEngine.demodulate('01100001')), 1n);
+    ok("demodulate to -1", RefEngine.consToJs(RefEngine.demodulate('10100001')), -1n);
+    ok("demodulate to 4", RefEngine.consToJs(RefEngine.demodulate('01100100')), 4n);
+    ok("demodulate to 16", RefEngine.consToJs(RefEngine.demodulate('0111000010000')), 16n);
 
     ok("modulate_list (0)", RefEngine.modulate_list([0n]), '1101000');
     ok("modulate_list (1,(2,3),4)", RefEngine.modulate_list([1n,[2n,3n],4n]), '1101100001111101100010110110001100110110010000');
 
-    ok("demodulate_list modulated (0)", RefEngine.listToList(RefEngine.demodulate_list('1101000')), [0n]);
-    ok("demodulate_list modulated (1,(2,3),4)", RefEngine.listToList(RefEngine.demodulate_list('1101100001111101100010110110001100110110010000')), [1n, [2n, 3n], 4n]);
-    ok("demodulate_list modulated (1,(2,3),4)", RefEngine.listToList(RefEngine.demodulate_list('1101100001110111110010110100011101100')), [1n, 23099n]);
+    ok("demodulate_list modulated (0)", RefEngine.consToJs(RefEngine.demodulate_list('1101000')), [0n]);
+    ok("demodulate_list modulated (1,(2,3),4)", RefEngine.consToJs(RefEngine.demodulate_list('1101100001111101100010110110001100110110010000')), [1n, [2n, 3n], 4n]);
+    ok("demodulate_list modulated (1,(2,3),4)", RefEngine.consToJs(RefEngine.demodulate_list('1101100001110111110010110100011101100')), [1n, 23099n]);
 
 
 

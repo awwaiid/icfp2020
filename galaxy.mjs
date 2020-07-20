@@ -71,7 +71,7 @@ async function main() {
         //PRINT_IMAGES(images)
         // console.log("images");
         // console.dir(images, {depth: 200})
-        let imagesData = RefEngine.listToList(images);
+        let imagesData = RefEngine.consToJs(images);
         // console.log(imagesData);
         await renderAll(imagesData, 'output.png')
         // if(imagesData[0] && imagesData[0] != "nil") {

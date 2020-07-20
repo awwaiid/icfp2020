@@ -144,13 +144,13 @@ export let primitives = {
     // ap draw ( ap ap vec 5 3 , ap ap vec 6 3 , ap ap vec 4 4 , ap ap vec 6 4 , ap ap vec 4 5 )   =   |picture6|
 
     draw: (list) => {
-        //console.log(listToList(list));
+        //console.log(consToJs(list));
         // convert list to js list
         // [ [5,3]. [6,3]]
         // call draw stuff on the coordinates in the js list
         
         let filename = "pics/" + Date.now() + ".png";
-        render(listToList(list), filename);
+        render(consToJs(list), filename);
 
         return primitives.t;
     },
@@ -177,7 +177,7 @@ export let primitives = {
 
 
     send: (data) => {
-        console.log("send", listToList(data));
+        console.log("send", consToJs(data));
         let modData = primitives.mod(data);
         // do an HTTP thing, get back result
         let result = "010";
@@ -359,11 +359,11 @@ function listContentToList(list) {
             let head = primitives.car(list);
             let tail = primitives.cdr(list);
             // console.log("printing content with", { head, tail })
-            return [listToList(head), ...listContentToList(tail)];
+            return [consToJs(head), ...listContentToList(tail)];
         }
 }
 
-export function listToList(list) {
+export function consToJs(list) {
     // console.log("printing list", {list})
     if (list instanceof Function) {
         return [ ...listContentToList(list) ];

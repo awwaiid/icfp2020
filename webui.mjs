@@ -64,7 +64,7 @@ async function setup() {
 async function sendClick() {
     let click = RefEngine.parse(["ap", "ap", "cons", vector.x, vector.y]);
     let [newState, images] = await RefEngine.interact(state, click);
-    let imagesData = RefEngine.listToList(images);
+    let imagesData = RefEngine.consToJs(images);
     await renderAll(imagesData, 'public/output.png')
 
     state = newState;

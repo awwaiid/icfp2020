@@ -73,9 +73,9 @@ export async function renderAll(images, fileName) {
         }
     });
 
-    console.log("writing to file...");
+    // console.log("writing to file...");
     await bitmap.writeFile(fileName);
-    console.log("file saved");
+    // console.log("file saved");
 
 }
 

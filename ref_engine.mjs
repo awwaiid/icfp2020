@@ -230,9 +230,10 @@ import axios from 'axios';
 // get the response back, demodulate it, put that in alienResponse
 // let alienResponse = send(data);
 async function send(data) {
-    let dataList = listToList(data);
+    let dataList = consToJs(data);
+    console.log("Send to aliens:", dataList);
     let encodedData = modulate_list(dataList);
-    console.log("Posting:", {dataList, encodedData})
+    // console.log("Posting:", {dataList, encodedData})
     let response = await axios.post(
         'https://icfpc2020-api.testkontur.ru/aliens/send?apiKey=a9f3b65f22c448ecb5f650a7ff8e770c',
         encodedData,
@@ -247,7 +248,7 @@ async function send(data) {
     let result = demodulate_list(response.data);
     // console.log("demodulated result");
     // console.dir(result, {depth: 1000});
-    // console.log(listToList(result));
+    console.log("got alien response", consToJs(result));
 
     return result;
 }
@@ -261,7 +262,7 @@ function listContentToList(list) {
             let arg = list.arg;
 
             if(f instanceof Ap && f.fun.name == "cons") {
-                let element = listToList(f.arg);
+                let element = consToJs(f.arg);
                 let restOfList = listContentToList( arg ); 
                 if(restOfList) {
                     return [element, ...restOfList];
@@ -270,14 +271,14 @@ function listContentToList(list) {
                 }
             }
 
-            return [listToList(f), ...listContentToList(arg)];
+            return [consToJs(f), ...listContentToList(arg)];
         } else if (list instanceof Atom) {
             // Normal lists shouldn't get here? Only dotted-pairs
             return [list.name];
         }
 }
 
-export function listToList(list) {
+export function consToJs(list) {
     if (list instanceof Ap) {
         return [ ...listContentToList(list) ];
     } else {
@@ -294,7 +295,7 @@ function myCdr(list) {
 }
 
 export async function interact(state, event) {
-    console.log("in interact", listToList(event))
+    // console.log("in interact", consToJs(event))
     let expr = new Ap( new Ap(new Atom("galaxy"), state), event);
     let res = evil(expr);
     // Note: res will be modulatable here (consists of cons, nil and numbers only)
@@ -302,9 +303,11 @@ export async function interact(state, event) {
     let newState = myCar(myCdr(res));
     let data = myCar(myCdr(myCdr(res)));
 
-    console.log("flag", listToList(flag));
-    console.log("newState", listToList(newState))
-    //console.log("data", listToList(data))
+    console.log("flag", consToJs(flag));
+    // console.log("newState", consToJs(newState))
+    console.log("newState:");
+    console.dir(consToJs(newState), { depth: 1000});
+    //console.log("data", consToJs(data))
    
     if (asNum(flag) == 0n) {
         return [newState, data];
@@ -462,3 +465,35 @@ export function loadGalaxy() {
         console.error(err);
     }
 }
+
+
+
+
+// create
+// [ '1', 2n ]
+
+// Join
+//  [ '2', 6051288275017681946n, 'nil' ]
+
+// start
+// [ '3', 6051288275017681946n, 'nil' ]
+
+// commands
+// (4, playerKey, commands)
+
+
+// Accelerate command
+
+// (0, shipId, vector)
+
+// Accelerates ship identified by shipId to the direction opposite to vector.
+// Detonate command
+
+// (1, shipId)
+
+// Detonates ship identified by shipId.
+// Shoot command
+
+// (2, shipId, target, x3)
+
+
