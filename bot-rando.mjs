@@ -6,16 +6,16 @@ function resultData(result) {
     
     let gameStage = result[1]; 
     
-    let gameInfo = result[2];
+    let gameInfo = result[2]; // assume nil
 
-    let role = gameInfo[1]; // 0 = attack, 1 = defend
+    let role = (gameInfo != 'nil') && gameInfo[1]; // 0 = attack, 1 = defend
     
-    let gameState = result[3];
+    let gameState = result[3]; // assume nil
     
-    let gameTick = gameState != 'nil' && gameState[0];
-    let gameX0 = gameState != 'nil' && gameState[1];
+    let gameTick = (gameState != 'nil') && gameState[0];
+    let gameX0 = (gameState != 'nil') && gameState[1];
 
-    let shipsAndCommands = gameState[2];
+    let shipsAndCommands = (gameState != 'nil') && gameState[2];
     let ships = {}; // mine, enemy
     // console.dir(shipsAndCommands);
     if(gameState != 'nil' && shipsAndCommands != 'nil') {
