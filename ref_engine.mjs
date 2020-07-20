@@ -226,7 +226,7 @@ export function demodulate_list(bit_str) {
 
 import axios from 'axios';
 
-let serverUrl =  'https://icfpc2020-api.testkontur.ru/aliens/send?apiKey=a9f3b65f22c448ecb5f650a7ff8e770c';
+let serverUrl =  'https://icfpc2020-api.testkontur.ru';
 export function setServerUrl(url) {
     serverUrl = url;
 }
@@ -240,7 +240,7 @@ async function send(data) {
     let encodedData = modulate_list(dataList);
     // console.log("Posting:", {dataList, encodedData})
     let response = await axios.post(
-        serverUrl,
+        `${serverUrl}/aliens/send?apiKey=a9f3b65f22c448ecb5f650a7ff8e770c`,
         encodedData,
         {
             responseType: 'text',
