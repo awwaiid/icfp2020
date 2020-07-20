@@ -45,6 +45,12 @@ function resultData(result) {
     }
 }
 
+function sleep(ms) {
+    return new Promise((resolve) => {
+      setTimeout(resolve, ms);
+    });
+  }   
+
 let playerKey;
 
 async function run(doSetup = true) {
@@ -67,10 +73,14 @@ async function run(doSetup = true) {
     result = await RefEngine.sendJs(['2', playerKey, 'nil']);
     console.dir(resultData(result));
 
+    await sleep(100);
+
     // start
     // [ '3', 6051288275017681946n, 'nil' ]
     result = await RefEngine.sendJs(['3', playerKey, 'nil']);
     console.dir(resultData(result), { depth:1000});
+
+    await sleep(100);
 
     // commands
     // (4, playerKey, commands)
@@ -82,6 +92,7 @@ async function run(doSetup = true) {
         result = await RefEngine.sendJs(['4', playerKey, 'nil']);
         parsedResult = resultData(result);
         console.dir(parsedResult, { depth:1000});
+await sleep(100);
     }
 
     // Self Destruct
