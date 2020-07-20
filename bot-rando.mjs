@@ -3,7 +3,7 @@ import * as RefEngine from "./ref_engine.mjs";
 function resultData(result) {
 
     console.dir(result, {depth: 1000})
-
+    
     let gameStage = result[1]; 
     
     let gameInfo = result[2];
@@ -45,26 +45,21 @@ function resultData(result) {
     }
 }
 
-var playerKey;
+let playerKey;
 
-async function setup() {
-    // create
-    // [ '1', 2n ]
-    let result = await RefEngine.sendJs(['1', 2n]);
-    console.dir(result, {depth: 1000});
-    
-    let playerKey = result[1][0][1];
-    console.log({playerKey});
-}
+async function run(doSetup = true) {
 
-async function run(doSetup = false) {
-    if(doSetup) {
-        // await setup();
-        let result = await RefEngine.sendJs(['1', 2n]);
+    let result;
+
+    if (doSetup) {
+        // create
+        // [ '1', 2n ]
+        result = await RefEngine.sendJs(['1', 2n]);
         console.dir(result, {depth: 1000});
-        
-        let playerKey = result[1][0][1];
+    
+        playerKey = result[1][0][1];
         console.log({playerKey});
+
     }
     
     // Join
@@ -96,20 +91,19 @@ async function run(doSetup = false) {
 }
 
 
-const serverUrl = process.argv[2] || 'https://icfpc2020-api.testkontur.ru/aliens/send?apiKey=a9f3b65f22c448ecb5f650a7ff8e770c';
+
+const serverUrl = process.argv[2];
 playerKey = process.argv[3];
 
-RefEngine.setServerUrl(serverUrl);
-
-if(!playerKey) {
-   console.log('no player key')
-   run(true);
-   
-} else {
-
-    run();
+if(serverUrl) {
+    RefEngine.setServerUrl(serverUrl);
 }
 
+if(playerKey) {
+    run(false);
+} else {
+    run(true);
+}
 
 
 // Accelerate command
