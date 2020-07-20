@@ -46,12 +46,6 @@ function resultData(result) {
     }
 }
 
-function sleep(ms) {
-    return new Promise((resolve) => {
-      setTimeout(resolve, ms);
-    });
-  }   
-
   function getRandomInt(max) {
     return Math.floor(Math.random() * Math.floor(max));
   }
@@ -73,21 +67,16 @@ async function run(doSetup = true) {
 
     }
     
-    await sleep(100);
 
     // Join
     //  [ '2', 6051288275017681946n, 'nil' ]
     result = await RefEngine.sendJs(['2', playerKey, 'nil']);
     console.dir(resultData(result));
 
-    await sleep(100);
-
     // start
     // [ '3', 6051288275017681946n, 'nil' ]
     result = await RefEngine.sendJs(['3', playerKey, ['1', '1', '1', '1']]);
     console.dir(resultData(result), { depth:1000});
-
-    await sleep(100);
 
     // commands
     // (4, playerKey, commands)
@@ -119,8 +108,6 @@ async function run(doSetup = true) {
             console.dir(resultData(result), { depth:1000});
         }
 
-        // Wait a bit before the next end I guess
-        await sleep(100);
     }
 
 
